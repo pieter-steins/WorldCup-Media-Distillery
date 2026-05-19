@@ -443,7 +443,6 @@ const SB={
 
 
 // ── ADMIN TAB ─────────────────────────────────────────────────────────
-const ADMIN_PASS = 'wc2026md';
 let adminUnlocked = false;
 let adminParticipants = [];
 let confirmDeleteId = null;
@@ -485,16 +484,46 @@ function renderAdminTab(){
   loadAdminData();
 }
 
-function checkAdminPass(){
-  const val = document.getElementById('adminPassInput')?.value;
-  if(val === ADMIN_PASS){ adminUnlocked=true; renderAdminTab(); }
-  else { const e=document.getElementById('adminErr'); if(e)e.textContent='Incorrect password.'; }
+async function checkAdminPass(){
+  const val = document.getElementById('adminPassInput')?.value || '';
+  const btn = document.querySelector('#tab-admin button[onclick="checkAdminPass()"]');
+  const errEl = document.getElementById('adminErr');
+  if(btn){ btn.disabled=true; btn.textContent='Checking…'; }
+  if(errEl) errEl.textContent='';
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/verify-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY },
+      body: JSON.stringify({ password: val })
+    });
+    const data = await res.json();
+    if(data.success){ adminUnlocked=true; renderAdminTab(); }
+    else { if(errEl) errEl.textContent='Incorrect password.'; }
+  } catch(e) {
+    if(errEl) errEl.textContent='Could not verify — check your connection.';
+  }
+  if(btn){ btn.disabled=false; btn.textContent='Unlock'; }
 }
 
-function checkResultsPass(){
-  const val = document.getElementById('resultsPassInput')?.value;
-  if(val === ADMIN_PASS){ resultsUnlocked=true; renderResultsTab(); refreshGroupResultsUI(); refreshMatchResultsUI(); refreshKoResultsUI(); }
-  else { const e=document.getElementById('resultsErr'); if(e)e.textContent='Incorrect password.'; }
+async function checkResultsPass(){
+  const val = document.getElementById('resultsPassInput')?.value || '';
+  const btn = document.querySelector('#tab-results button[onclick="checkResultsPass()"]');
+  const errEl = document.getElementById('resultsErr');
+  if(btn){ btn.disabled=true; btn.textContent='Checking…'; }
+  if(errEl) errEl.textContent='';
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/verify-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY },
+      body: JSON.stringify({ password: val })
+    });
+    const data = await res.json();
+    if(data.success){ resultsUnlocked=true; renderResultsTab(); refreshGroupResultsUI(); refreshMatchResultsUI(); refreshKoResultsUI(); }
+    else { if(errEl) errEl.textContent='Incorrect password.'; }
+  } catch(e) {
+    if(errEl) errEl.textContent='Could not verify — check your connection.';
+  }
+  if(btn){ btn.disabled=false; btn.textContent='Unlock'; }
 }
 
 async function loadAdminData(){
