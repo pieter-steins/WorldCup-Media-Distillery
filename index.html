@@ -421,6 +421,12 @@ function checkAdminPass(){
   else { const e=document.getElementById('adminErr'); if(e)e.textContent='Incorrect password.'; }
 }
 
+function checkResultsPass(){
+  const val = document.getElementById('resultsPassInput')?.value;
+  if(val === ADMIN_PASS){ resultsUnlocked=true; renderResultsTab(); refreshGroupResultsUI(); refreshMatchResultsUI(); refreshKoResultsUI(); }
+  else { const e=document.getElementById('resultsErr'); if(e)e.textContent='Incorrect password.'; }
+}
+
 async function loadAdminData(){
   const rows = await SB.get('wc2026_picks','?order=updated_at.desc');
   if(!rows){ return; }
@@ -909,9 +915,28 @@ async function loadLeaderboard(){
 }
 
 // ── RESULTS TAB ───────────────────────────────────────────────────────
+let resultsUnlocked = false;
+
 function buildResultsTab(){
+  renderResultsTab();
+}
+
+function renderResultsTab(){
   const s=document.getElementById('tab-results');
-  s.innerHTML=`<div class="warnb"><strong>Organiser only.</strong> Enter actual results here — everyone's scores update automatically.</div>
+  if(!resultsUnlocked){
+    s.innerHTML=`
+      <div class="admin-lock">
+        <h2>&#128274; Results</h2>
+        <p>Enter the organiser password to enter match results.</p>
+        <input type="password" id="resultsPassInput" placeholder="Password" onkeydown="if(event.key==='Enter')checkResultsPass()">
+        <button onclick="checkResultsPass()">Unlock</button>
+        <div class="err" id="resultsErr"></div>
+      </div>`;
+    return;
+  }
+  s.innerHTML=`<div class="warnb"><strong>Organiser only.</strong> Enter actual results here — everyone's scores update automatically.
+    <button onclick="resultsUnlocked=false;renderResultsTab()" style="float:right;background:none;border:1px solid var(--amber-d);border-radius:6px;padding:2px 10px;font-family:'DM Sans',sans-serif;font-size:.72rem;cursor:pointer;color:var(--amber-d)">Lock</button>
+  </div>
     <div class="sav" id="resSav" style="text-align:right"></div>
     <div class="sec-title">Group results</div>
     <div class="rg" id="groupResultsGrid"></div>
