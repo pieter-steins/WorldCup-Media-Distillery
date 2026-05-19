@@ -357,6 +357,7 @@ let state={
   name:'',
   picks:Object.fromEntries(Object.entries(GROUPS).map(([g,t])=>[g,Object.fromEntries(t.map(([n])=>[n,0]))])),
   mpreds:Object.fromEntries(MATCHES.map(m=>[m.id,''])),
+  mscores:Object.fromEntries(MATCHES.map(m=>[m.id,{h:'',a:''}])),
   kopreds:Object.fromEntries(KO_MATCHES.map(m=>[m.id,''])),
   champion:null
 };
@@ -603,6 +604,7 @@ async function loadMyPicks(){
     if(d.picks)Object.entries(d.picks).forEach(([g,gp])=>{if(state.picks[g])Object.entries(gp).forEach(([n,v])=>{if(n in state.picks[g])state.picks[g][n]=v;});});
     if(d.mpreds)Object.entries(d.mpreds).forEach(([id,v])=>{if(id in state.mpreds)state.mpreds[id]=v;});
     if(d.kopreds)Object.entries(d.kopreds).forEach(([id,v])=>{if(id in state.kopreds)state.kopreds[id]=v;});
+    if(d.mscores)Object.entries(d.mscores).forEach(([id,v])=>{if(id in state.mscores)state.mscores[id]=v;});
     state.champion=d.champion||null;
     refreshAllGroups();
     renderMatchesList();
@@ -628,7 +630,7 @@ function debounceSave(){
   saveTimer=setTimeout(saveMyPicks,800);
 }
 async function saveMyPicks(){
-  const ok=await SB.upsert('wc2026_picks',{id:myId,name:state.name,picks:state.picks,mpreds:state.mpreds,kopreds:state.kopreds,champion:state.champion,updated_at:new Date().toISOString()});
+  const ok=await SB.upsert('wc2026_picks',{id:myId,name:state.name,picks:state.picks,mpreds:state.mpreds,mscores:state.mscores,kopreds:state.kopreds,champion:state.champion,updated_at:new Date().toISOString()});
   setSaving(ok?'ok':'err');
   setTimeout(()=>setSaving(''),2500);
 }
@@ -659,6 +661,10 @@ function buildGroupsTab(){
     <div class="card" style="padding:.65rem 1rem;margin-bottom:.8rem">
       <div class="pm"><span id="progressLabel">0 of 120 picks made</span><span id="progressPct">0%</span></div>
       <div class="pt"><div class="pf" id="progressFill" style="width:0%"></div></div>
+    </div>
+    <div class="infob">
+      <strong>Step 1 of 4 — Group stage picks.</strong> For each of the 12 groups, click the team you think will finish <strong>1st</strong> (green) and <strong>2nd</strong> (blue). First click = 1st place, second click = 2nd place, third click = clear. Make sure to enter your name above so you appear on the leaderboard.<br><br>
+      🟢 Correct group winner = <strong>2 pts</strong> &nbsp;·&nbsp; 🔵 Correct runner-up = <strong>1 pt</strong>
     </div>
     <div class="leg">
       <span><span class="ld" style="background:var(--green)"></span>1st click = group winner (2 pts)</span>
@@ -696,7 +702,11 @@ function refreshAllGroups(){Object.keys(GROUPS).forEach(g=>refreshGroup(g));}
 // ── MATCHES TAB ───────────────────────────────────────────────────────
 function buildMatchesTab(){
   const s=document.getElementById('tab-matches');
-  s.innerHTML=`<div class="infob"><strong>Group stage predictions</strong> — pick the result for all 72 matches. <strong>H</strong> = home win, <strong>D</strong> = draw, <strong>A</strong> = away win. Correct = <strong>1 pt</strong>.</div>
+  s.innerHTML=`<div class="infob">
+      <strong>Step 2 of 4 — Match predictions.</strong> For all 72 group stage matches, pick the result AND optionally predict the exact score.<br><br>
+      ✅ Correct result (H/D/A) = <strong>1 pt</strong> &nbsp;·&nbsp; 🎯 Correct exact score = <strong>+2 bonus pts</strong> (3 pts total)<br><br>
+      Click <strong>H</strong> (home win), <strong>D</strong> (draw) or <strong>A</strong> (away win). Then optionally enter the score you predict, e.g. 2–1. The result pick is automatically set based on your score if you fill it in. You don't need to predict every match — just the ones you feel confident about.
+    </div>
     <div class="filter-row" id="matchFilters"></div>
     <div class="sav" id="savingMatches"></div>
     <div id="matchesList"></div>`;
@@ -724,13 +734,22 @@ function renderMatchesList(){
         const hf=GROUPS[m.g]?.find(([n])=>n===m.h)?.[1]||'';
         const af=GROUPS[m.g]?.find(([n])=>n===m.a)?.[1]||'';
         const p=state.mpreds[m.id];
-        return `<div class="mc">
+        const sh=state.mscores[m.id]?.h??'';
+        const sa=state.mscores[m.id]?.a??'';
+        const hasScore=sh!==''&&sa!=='';
+        return `<div class="mc" style="flex-wrap:wrap">
           <span class="mc-grp">Grp ${m.g}</span>
           <div class="mc-teams"><span class="mc-team"><span>${hf}</span>${m.h}</span><span class="mc-vs">vs</span><span class="mc-team"><span>${af}</span>${m.a}</span></div>
           <div class="mc-preds">
             <button class="pb${p==='h'?' h':''}" onclick="setPred('${m.id}','h')">H</button>
             <button class="pb${p==='d'?' d':''}" onclick="setPred('${m.id}','d')">D</button>
             <button class="pb${p==='a'?' a':''}" onclick="setPred('${m.id}','a')">A</button>
+            <span style="display:flex;align-items:center;gap:3px;margin-left:4px">
+              <input type="number" min="0" max="20" value="${sh}" placeholder="0" style="width:32px;text-align:center;border:1px solid ${hasScore?'var(--amber)':'var(--border)'};border-radius:5px;padding:2px 3px;font-family:'DM Sans',sans-serif;font-size:.78rem;background:${hasScore?'var(--amber-l)':'var(--white)'}" oninput="setScore('${m.id}','h',this.value)" title="Home goals">
+              <span style="font-size:.65rem;color:var(--muted)">:</span>
+              <input type="number" min="0" max="20" value="${sa}" placeholder="0" style="width:32px;text-align:center;border:1px solid ${hasScore?'var(--amber)':'var(--border)'};border-radius:5px;padding:2px 3px;font-family:'DM Sans',sans-serif;font-size:.78rem;background:${hasScore?'var(--amber-l)':'var(--white)'}" oninput="setScore('${m.id}','a',this.value)" title="Away goals">
+              ${hasScore?'<span style="font-size:.63rem;color:var(--amber-d);margin-left:2px">+2</span>':''}
+            </span>
           </div>
           <div class="mc-venue">${m.venue}</div>
         </div>`;
@@ -742,11 +761,25 @@ function setPred(id,val){
   renderMatchesList();updateProgress();debounceSave();
   const u=document.getElementById('mf-unpicked');if(u)u.textContent='Unpicked ('+(72-Object.values(state.mpreds).filter(v=>v!=='').length)+')';
 }
+function setScore(id,side,val){
+  if(!state.mscores[id])state.mscores[id]={h:'',a:''};
+  state.mscores[id][side]=val===''?'':parseInt(val)||0;
+  // auto-set H/D/A result based on score
+  const h=state.mscores[id].h;const a=state.mscores[id].a;
+  if(h!==''&&a!==''){
+    const hi=parseInt(h),ai=parseInt(a);
+    state.mpreds[id]=hi>ai?'h':hi<ai?'a':'d';
+  }
+  renderMatchesList();updateProgress();debounceSave();
+}
 
 // ── KNOCKOUT TAB ──────────────────────────────────────────────────────
 function buildKnockoutTab(){
   const s=document.getElementById('tab-knockout');
-  s.innerHTML=`<div class="infob"><strong>Knockout predictions</strong> — pick the winner of each match. Teams are shown once results are entered; until then the bracket position is shown. Correct = <strong>2 pts</strong> (R32/R16), <strong>3 pts</strong> (QF), <strong>4 pts</strong> (SF), <strong>5 pts</strong> (Final/3rd place).</div>
+  s.innerHTML=`<div class="infob">
+      <strong>Step 3 of 4 — Knockout predictions.</strong> Pick the winner of each of the 32 knockout matches, from the Round of 32 all the way to the Final. Matches show the bracket position until the organiser fills in the actual team names after the group stage ends on June 27.<br><br>
+      🏆 Round of 32 &amp; 16 correct = <strong>2 pts</strong> &nbsp;·&nbsp; Quarter-final = <strong>3 pts</strong> &nbsp;·&nbsp; Semi-final = <strong>4 pts</strong> &nbsp;·&nbsp; Final &amp; 3rd place = <strong>5 pts</strong>
+    </div>
     <div id="koList"></div>`;
   renderKnockoutList();
 }
@@ -785,7 +818,10 @@ function setKoPred(id,val,btn){
 // ── CHAMPION TAB ──────────────────────────────────────────────────────
 function buildChampionTab(){
   const s=document.getElementById('tab-champion');
-  s.innerHTML=`<div class="infob"><strong>Who lifts the trophy on July 19 in New Jersey?</strong> Correct = <strong>6 pts</strong>. Partial credit (picked in a group) = <strong>3 pts</strong>.</div>
+  s.innerHTML=`<div class="infob">
+      <strong>Step 4 of 4 — Champion pick.</strong> Pick the one team you think will win the entire World Cup. This is your most valuable single pick.<br><br>
+      🥇 Correct champion = <strong>6 pts</strong> &nbsp;·&nbsp; Correct champion but you also picked them as a group winner or runner-up = <strong>3 pts partial credit</strong>
+    </div>
     <div class="cg" id="champGrid"></div>`;
   const grid=document.getElementById('champGrid');
   ALL_TEAMS.forEach(([n,f])=>{
@@ -848,8 +884,10 @@ function renderSummary(){
   ).join('')||'<tr><td colspan="4" style="padding:.9rem;color:var(--muted);font-style:italic">No picks yet.</td></tr>';
   document.getElementById('matchPicksTable').innerHTML=MATCHES.filter(m=>state.mpreds[m.id]).map(m=>{
     const p=state.mpreds[m.id];
-    return `<tr><td class="grpc">Grp ${m.g}</td><td colspan="2" style="font-size:.75rem">${m.h} vs ${m.a}</td><td><span class="badge ${p==='h'?'bh':p==='d'?'bd':'ba'}">${p==='h'?m.h+' win':p==='d'?'Draw':m.a+' win'}</span></td></tr>`;
-  }).join('')||'<tr><td colspan="4" style="padding:.9rem;color:var(--muted);font-style:italic">No picks yet.</td></tr>';
+    const ms=state.mscores[m.id];
+    const hasScore=ms&&ms.h!==''&&ms.a!=='';
+    return `<tr><td class="grpc">Grp ${m.g}</td><td style="font-size:.75rem">${m.h} vs ${m.a}</td><td>${hasScore?`<span style="font-size:.75rem;font-weight:500;color:var(--amber-d)">${ms.h}–${ms.a}</span> `:''}<span class="badge ${p==='h'?'bh':p==='d'?'bd':'ba'}">${p==='h'?m.h+' win':p==='d'?'Draw':m.a+' win'}</span></td></tr>`;
+  }).join('')||'<tr><td colspan="3" style="padding:.9rem;color:var(--muted);font-style:italic">No picks yet.</td></tr>';
   document.getElementById('koPicksTable').innerHTML=KO_MATCHES.filter(m=>state.kopreds[m.id]).map(m=>
     `<tr><td class="grpc" style="width:80px">${KO_ROUNDS.find(r=>r.id===m.round)?.label}</td><td>${m.label}</td><td><span class="badge bk">${state.kopreds[m.id]}</span></td></tr>`
   ).join('')||'<tr><td colspan="3" style="padding:.9rem;color:var(--muted);font-style:italic">No picks yet.</td></tr>';
@@ -872,7 +910,19 @@ function calcScore(d){
   // Groups
   Object.keys(GROUPS).forEach(g=>{const r=results.groups?.[g];if(!r)return;const gp=d.picks?.[g]||{};const w=Object.entries(gp).find(([,v])=>v===1)?.[0];const ru=Object.entries(gp).find(([,v])=>v===2)?.[0];if(w&&r.winner===w)s+=2;if(ru&&r.runner===ru)s+=1;});
   // Matches
-  MATCHES.forEach(m=>{const r=results.matches?.[m.id];if(!r||r.hg===undefined||r.ag===undefined||r.hg===''||r.ag==='')return;const pred=d.mpreds?.[m.id]||'';const hg=parseInt(r.hg),ag=parseInt(r.ag);if(pred===(hg>ag?'h':hg<ag?'a':'d'))s+=1;});
+  MATCHES.forEach(m=>{
+    const r=results.matches?.[m.id];
+    if(!r||r.hg===undefined||r.ag===undefined||r.hg===''||r.ag==='')return;
+    const pred=d.mpreds?.[m.id]||'';
+    const hg=parseInt(r.hg),ag=parseInt(r.ag);
+    const actual=hg>ag?'h':hg<ag?'a':'d';
+    if(pred===actual){
+      s+=1;
+      // Bonus for exact score
+      const ps=d.mscores?.[m.id];
+      if(ps&&ps.h!==''&&ps.a!==''&&parseInt(ps.h)===hg&&parseInt(ps.a)===ag)s+=2;
+    }
+  });
   // Knockout
   KO_MATCHES.forEach(m=>{
     const r=results.ko?.[m.id];if(!r?.winner)return;
