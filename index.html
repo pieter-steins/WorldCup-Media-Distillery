@@ -585,27 +585,49 @@ async function doRegister(){
   if(pin !== conf){ err.textContent='PINs do not match.'; return; }
   btn.disabled=true; btn.textContent='Creating account…'; err.textContent='';
   try {
-    // Check name not already taken
-    const existing = await SB.get('wc2026_picks', `?name_lower=eq.${encodeURIComponent(name.toLowerCase())}`);
-    if(existing && existing.length > 0){
+    // Check name not already taken — search all records and filter client-side
+    // to avoid issues with column indexing
+    const existing = await SB.get('wc2026_picks', `?name_lower=eq.${encodeURIComponent(name.toLowerCase())}&select=id,name`);
+    console.log('Name check result:', existing);
+    if(existing === null){
+      err.textContent = 'Could not reach the database. Check your internet connection.';
+      btn.disabled=false; btn.textContent='Create account'; return;
+    }
+    if(existing.length > 0){
       err.textContent = 'That name is already taken. Sign in instead, or choose a different name.';
       btn.disabled=false; btn.textContent='Create account'; return;
     }
     const hash = await hashPin(name, pin);
     const id   = 'p_' + Math.random().toString(36).slice(2,10);
-    const ok   = await SB.upsert('wc2026_picks', {
-      id, name, name_lower: name.toLowerCase(), pin_hash: hash,
-      picks: emptyPicks().picks, mpreds: emptyPicks().mpreds,
-      mscores: emptyPicks().mscores, kopreds: emptyPicks().kopreds,
-      champion: null, updated_at: new Date().toISOString()
+    console.log('Creating account with id:', id, 'name:', name);
+    const ep = emptyPicks();
+    const ok = await SB.upsert('wc2026_picks', {
+      id,
+      name,
+      name_lower: name.toLowerCase(),
+      pin_hash: hash,
+      picks: ep.picks,
+      mpreds: ep.mpreds,
+      mscores: ep.mscores,
+      kopreds: ep.kopreds,
+      champion: null,
+      updated_at: new Date().toISOString()
     });
+    console.log('Upsert result:', ok);
     if(ok){
       const rows = await SB.get('wc2026_picks', `?id=eq.${id}`);
-      await onLoginSuccess(rows[0]);
+      console.log('Fetched new account:', rows);
+      if(rows && rows.length > 0){
+        await onLoginSuccess(rows[0]);
+      } else {
+        err.textContent = 'Account created but could not load it. Please try signing in.';
+        switchLoginTab('signin');
+        document.getElementById('siName').value = name;
+      }
     } else {
-      err.textContent = 'Could not create account. Please try again.';
+      err.textContent = 'Could not create account — database error. Please try again.';
     }
-  } catch(e){ err.textContent='Something went wrong. Please try again.'; console.error(e); }
+  } catch(e){ err.textContent='Something went wrong: ' + e.message; console.error('Register error:', e); }
   btn.disabled=false; btn.textContent='Create account';
 }
 
