@@ -648,7 +648,8 @@ async function onLoginSuccess(row){
   // Populate state
   state = emptyPicks();
   state.name = row.name;
-  if(row.picks)   Object.entries(row.picks).forEach(([g,gp])=>{ if(state.picks[g]) Object.entries(gp).forEach(([n,v])=>{ if(n in state.picks[g]) state.picks[g][n]=v; }); });
+  state._meta = row.picks?._meta || {}; // preserve auth info
+  if(row.picks)   Object.entries(row.picks).forEach(([g,gp])=>{ if(g !== '_meta' && state.picks[g]) Object.entries(gp).forEach(([n,v])=>{ if(n in state.picks[g]) state.picks[g][n]=v; }); });
   if(row.mpreds)  Object.entries(row.mpreds).forEach(([id,v])=>{ if(id in state.mpreds) state.mpreds[id]=v; });
   if(row.mscores) Object.entries(row.mscores).forEach(([id,v])=>{ if(id in state.mscores) state.mscores[id]=v; });
   if(row.kopreds) Object.entries(row.kopreds).forEach(([id,v])=>{ if(id in state.kopreds) state.kopreds[id]=v; });
