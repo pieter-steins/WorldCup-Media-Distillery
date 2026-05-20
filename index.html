@@ -248,6 +248,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--ink);mi
       <div class="login-err" id="regErr"></div>
     </div>
     <div class="login-footer">Your PIN is stored securely — it never appears in the page source.</div>
+    <div style="margin-top:.8rem;text-align:center">
+      <button onclick="testConnection()" style="background:none;border:1px solid var(--border);border-radius:7px;padding:5px 14px;font-family:'DM Sans',sans-serif;font-size:.72rem;cursor:pointer;color:var(--muted)">Test database connection</button>
+      <div id="connTestResult" style="font-size:.72rem;margin-top:.4rem;min-height:1rem"></div>
+    </div>
   </div>
 </div>
 
@@ -554,20 +558,26 @@ async function doSignIn(){
   btn.disabled=true; btn.textContent='Signing in…'; err.textContent='';
   try {
     const hash = await hashPin(name, pin);
-    // Look up by name (case-insensitive) and pin_hash
-    const rows = await SB.get('wc2026_picks', `?name_lower=eq.${encodeURIComponent(name.toLowerCase())}&pin_hash=eq.${hash}`);
-    if(!rows || rows.length === 0){
-      // Check if name exists at all (wrong PIN)
-      const nameCheck = await SB.get('wc2026_picks', `?name_lower=eq.${encodeURIComponent(name.toLowerCase())}`);
-      if(nameCheck && nameCheck.length > 0){
-        err.textContent = 'Incorrect PIN. Try again.';
-      } else {
-        err.textContent = 'No account found. Please create one first.';
-        switchLoginTab('register');
-        document.getElementById('regName').value = name;
-      }
+    // Fetch all rows and match client-side
+    const allRows = await SB.get('wc2026_picks', `?select=id,name,picks,mpreds,mscores,kopreds,champion,updated_at`);
+    if(!allRows){
+      err.textContent = 'Could not reach the database. Check your internet connection.';
+      btn.disabled=false; btn.textContent='Sign in'; return;
+    }
+    // Find matching name (case-insensitive)
+    const nameMatch = allRows.filter(r => r.name && r.name.toLowerCase() === name.toLowerCase());
+    if(nameMatch.length === 0){
+      err.textContent = 'No account found. Please create one first.';
+      switchLoginTab('register');
+      document.getElementById('regName').value = name;
+      btn.disabled=false; btn.textContent='Sign in'; return;
+    }
+    // Check PIN hash stored in picks._meta
+    const row = nameMatch.find(r => r.picks?._meta?.pin_hash === hash);
+    if(!row){
+      err.textContent = 'Incorrect PIN. Try again.';
     } else {
-      await onLoginSuccess(rows[0]);
+      await onLoginSuccess(row);
     }
   } catch(e){ err.textContent='Something went wrong. Please try again.'; console.error(e); }
   btn.disabled=false; btn.textContent='Sign in';
@@ -587,12 +597,14 @@ async function doRegister(){
   try {
     // Check name not already taken — search all records and filter client-side
     // to avoid issues with column indexing
-    const existing = await SB.get('wc2026_picks', `?name_lower=eq.${encodeURIComponent(name.toLowerCase())}&select=id,name`);
-    console.log('Name check result:', existing);
-    if(existing === null){
+    // Fetch all names and check client-side (case-insensitive)
+    const allRows = await SB.get('wc2026_picks', `?select=id,name`);
+    console.log('Name check result:', allRows);
+    if(allRows === null){
       err.textContent = 'Could not reach the database. Check your internet connection.';
       btn.disabled=false; btn.textContent='Create account'; return;
     }
+    const existing = allRows.filter(r => r.name && r.name.toLowerCase() === name.toLowerCase());
     if(existing.length > 0){
       err.textContent = 'That name is already taken. Sign in instead, or choose a different name.';
       btn.disabled=false; btn.textContent='Create account'; return;
@@ -604,9 +616,7 @@ async function doRegister(){
     const ok = await SB.upsert('wc2026_picks', {
       id,
       name,
-      name_lower: name.toLowerCase(),
-      pin_hash: hash,
-      picks: ep.picks,
+      picks: { ...ep.picks, _meta: { name_lower: name.toLowerCase(), pin_hash: hash } },
       mpreds: ep.mpreds,
       mscores: ep.mscores,
       kopreds: ep.kopreds,
@@ -633,7 +643,7 @@ async function doRegister(){
 
 async function onLoginSuccess(row){
   myId = row.id;
-  localStorage.setItem('wc26:session', JSON.stringify({ id: row.id, name: row.name, name_lower: row.name_lower||row.name.toLowerCase() }));
+  localStorage.setItem('wc26:session', JSON.stringify({ id: row.id, name: row.name }));
   // Populate state
   state = emptyPicks();
   state.name = row.name;
@@ -679,7 +689,7 @@ async function checkSession(){
     if(!stored) return false;
     const sess = JSON.parse(stored);
     if(!sess.id) return false;
-    const rows = await SB.get('wc2026_picks', `?id=eq.${sess.id}`);
+    const rows = await SB.get('wc2026_picks', `?id=eq.${sess.id}&select=id,name,picks,mpreds,mscores,kopreds,champion,updated_at`);
     if(!rows || rows.length === 0){ localStorage.removeItem('wc26:session'); return false; }
     await onLoginSuccess(rows[0]);
     return true;
@@ -955,6 +965,34 @@ function exportCSV(){
 
 
 // ── INIT ──────────────────────────────────────────────────────────────
+async function testConnection(){
+  const el = document.getElementById('connTestResult');
+  el.style.color = 'var(--muted)';
+  el.textContent = 'Testing…';
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/wc2026_picks?limit=1`, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY
+      }
+    });
+    console.log('Connection test status:', r.status);
+    const text = await r.text();
+    console.log('Connection test response:', text);
+    if(r.ok){
+      el.style.color = 'var(--green)';
+      el.textContent = '✓ Connected to database successfully!';
+    } else {
+      el.style.color = '#E24B4A';
+      el.textContent = `✗ Database error ${r.status}: ${text.slice(0,100)}`;
+    }
+  } catch(e){
+    el.style.color = '#E24B4A';
+    el.textContent = `✗ Network error: ${e.message}`;
+    console.error('Connection test error:', e);
+  }
+}
+
 async function init(){
   buildGroupsTab();
   buildAdminTab();
@@ -1014,7 +1052,9 @@ function debounceSave(){
 }
 async function saveMyPicks(){
   if(!myId) return;
-  const ok=await SB.upsert('wc2026_picks',{id:myId,name:state.name,name_lower:state.name.toLowerCase(),picks:state.picks,mpreds:state.mpreds,mscores:state.mscores,kopreds:state.kopreds,champion:state.champion,updated_at:new Date().toISOString()});
+  // Preserve _meta (auth info) in picks when saving
+  const picksToSave = { ...state.picks, _meta: state._meta || {} };
+  const ok=await SB.upsert('wc2026_picks',{id:myId,name:state.name,picks:picksToSave,mpreds:state.mpreds,mscores:state.mscores,kopreds:state.kopreds,champion:state.champion,updated_at:new Date().toISOString()});
   setSaving(ok?'ok':'err');
   setTimeout(()=>setSaving(''),2500);
 }
