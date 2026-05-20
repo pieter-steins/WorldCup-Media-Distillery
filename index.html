@@ -204,6 +204,56 @@ body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--ink);mi
 </head>
 <body>
 
+<!-- ── Login screen ── -->
+<div id="loginScreen" style="display:none">
+  <div class="login-box">
+    <h2>World Cup <em>2026</em> Pool</h2>
+    <p>Sign in to save your picks across all your devices, or create a new account to get started.</p>
+    <div class="login-tabs">
+      <button class="login-tab on" id="ltSign" onclick="switchLoginTab('signin')">Sign in</button>
+      <button class="login-tab" id="ltReg" onclick="switchLoginTab('register')">New account</button>
+    </div>
+    <div id="loginSignIn">
+      <div class="login-field"><label>Your name</label><input id="siName" placeholder="Enter your name" autocomplete="username"></div>
+      <div class="login-field"><label>4-digit PIN</label>
+        <div class="pin-row">
+          <input class="pin-digit" id="si0" type="password" inputmode="numeric" maxlength="1" oninput="pinNav('si',0,this)">
+          <input class="pin-digit" id="si1" type="password" inputmode="numeric" maxlength="1" oninput="pinNav('si',1,this)">
+          <input class="pin-digit" id="si2" type="password" inputmode="numeric" maxlength="1" oninput="pinNav('si',2,this)">
+          <input class="pin-digit" id="si3" type="password" inputmode="numeric" maxlength="1" oninput="pinNav('si',3,this)">
+        </div>
+      </div>
+      <button class="login-btn" id="siBtn" onclick="doSignIn()">Sign in</button>
+      <div class="login-err" id="siErr"></div>
+    </div>
+    <div id="loginRegister" style="display:none">
+      <div class="login-field"><label>Your name</label><input id="regName" placeholder="Enter your name" autocomplete="username"></div>
+      <div class="login-field"><label>Choose a 4-digit PIN</label>
+        <div class="pin-row">
+          <input class="pin-digit" id="reg0" type="password" inputmode="numeric" maxlength="1" oninput="pinNav('reg',0,this)">
+          <input class="pin-digit" id="reg1" type="password" inputmode="numeric" maxlength="1" oninput="pinNav('reg',1,this)">
+          <input class="pin-digit" id="reg2" type="password" inputmode="numeric" maxlength="1" oninput="pinNav('reg',2,this)">
+          <input class="pin-digit" id="reg3" type="password" inputmode="numeric" maxlength="1" oninput="pinNav('reg',3,this)">
+        </div>
+      </div>
+      <div class="login-field"><label>Confirm PIN</label>
+        <div class="pin-row">
+          <input class="pin-digit" id="conf0" type="password" inputmode="numeric" maxlength="1" oninput="pinNav('conf',0,this)">
+          <input class="pin-digit" id="conf1" type="password" inputmode="numeric" maxlength="1" oninput="pinNav('conf',1,this)">
+          <input class="pin-digit" id="conf2" type="password" inputmode="numeric" maxlength="1" oninput="pinNav('conf',2,this)">
+          <input class="pin-digit" id="conf3" type="password" inputmode="numeric" maxlength="1" oninput="pinNav('conf',3,this)">
+        </div>
+      </div>
+      <button class="login-btn" id="regBtn" onclick="doRegister()">Create account</button>
+      <div class="login-err" id="regErr"></div>
+    </div>
+    <div class="login-footer">Your PIN is stored securely — it never appears in the page source.</div>
+  </div>
+</div>
+
+<!-- ── Main app (hidden until logged in) ── -->
+<div id="mainApp" style="display:none">
+
 <header class="hdr">
   <h1>World Cup <em>2026</em> Pool</h1>
   <p>June 11 – July 19 &nbsp;·&nbsp; USA, Canada &amp; Mexico &nbsp;·&nbsp; 48 teams · 104 matches</p>
@@ -893,10 +943,12 @@ async function init(){
   buildLeaderboardTab();
   buildResultsTab();
   await loadResults();
-  // Try to restore session before showing login
+  // Always show login screen first, then try to restore session
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('mainApp').style.display='none';
   const hasSession = await checkSession();
   if(!hasSession){
-    document.getElementById('loginScreen').style.display='flex';
+    // login screen already shown
   }
   setInterval(applyLockState, 1000);
   loadLeaderboard();
@@ -1445,5 +1497,6 @@ function copyPicks(){
 
 init();
 </script>
+</div><!-- end mainApp -->
 </body>
 </html>
