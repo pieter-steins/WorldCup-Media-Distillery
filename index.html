@@ -384,7 +384,7 @@ const GROUPS = {
   I:[["France","🇫🇷"],["Senegal","🇸🇳"],["Iraq","🇮🇶"],["Norway","🇳🇴"]],
   J:[["Argentina","🇦🇷"],["Algeria","🇩🇿"],["Austria","🇦🇹"],["Jordan","🇯🇴"]],
   K:[["Portugal","🇵🇹"],["DR Congo","🇨🇩"],["Uzbekistan","🇺🇿"],["Colombia","🇨🇴"]],
-  L:[["England","🏴"],["Croatia","🇭🇷"],["Panama","🇵🇦"],["Ghana","🇬🇭"]]
+  L:[["England","🇬🇧"],["Croatia","🇭🇷"],["Panama","🇵🇦"],["Ghana","🇬🇭"]]
 };
 const ALL_TEAMS=[];const _seen=new Set();
 Object.values(GROUPS).flat().forEach(([n,f])=>{if(!_seen.has(n)){_seen.add(n);ALL_TEAMS.push([n,f]);}});
@@ -1384,10 +1384,10 @@ function renderSummary(){
 // ── LEADERBOARD TAB ───────────────────────────────────────────────────
 function buildLeaderboardTab(){
   document.getElementById('tab-leaderboard').innerHTML=`
-    <div class="infob">Live standings — scores update automatically as results are entered. <button onclick="loadLeaderboard()" style="background:none;border:none;cursor:pointer;color:var(--blue-d);font-size:.75rem;text-decoration:underline;font-family:'DM Sans',sans-serif">Refresh</button></div>
+    <div class="infob" id="lbInfoBanner">Live standings — scores update automatically as results are entered. <button onclick="loadLeaderboard()" style="background:none;border:none;cursor:pointer;color:var(--blue-d);font-size:.75rem;text-decoration:underline;font-family:'DM Sans',sans-serif">Refresh</button></div>
     <div class="card" style="padding:0;overflow:hidden">
       <table class="lbt">
-        <thead><tr><th style="width:36px">#</th><th>Name</th><th style="width:58px;text-align:center">Grp</th><th style="width:58px;text-align:center">Match</th><th style="width:58px;text-align:center">KO</th><th style="width:65px;text-align:center">Total</th></tr></thead>
+        <thead><tr><th style="width:36px">#</th><th>Name</th><th style="width:58px;text-align:center">Grp</th><th style="width:58px;text-align:center">Match</th><th style="width:58px;text-align:center">KO</th><th style="width:65px;text-align:center">Total</th><th style="width:50px;text-align:center">Picks</th></tr></thead>
         <tbody id="lbBody"><tr><td colspan="6" style="padding:1.5rem;text-align:center;color:var(--muted)"><span class="spin"></span> Loading…</td></tr></tbody>
       </table>
     </div>`;
@@ -1427,9 +1427,9 @@ function calcScore(d){
 }
 async function loadLeaderboard(){
   const tbody=document.getElementById('lbBody');if(!tbody)return;
-  tbody.innerHTML='<tr><td colspan="6" style="padding:1.5rem;text-align:center;color:var(--muted)"><span class="spin"></span> Loading…</td></tr>';
+  tbody.innerHTML='<tr><td colspan="7" style="padding:1.5rem;text-align:center;color:var(--muted)"><span class="spin"></span> Loading…</td></tr>';
   const rows=await SB.get('wc2026_picks','?order=updated_at.desc');
-  if(!rows){tbody.innerHTML='<tr><td colspan="6" style="padding:1.5rem;text-align:center;color:var(--muted)">Could not load.</td></tr>';return;}
+  if(!rows){tbody.innerHTML='<tr><td colspan="7" style="padding:1.5rem;text-align:center;color:var(--muted)">Could not load.</td></tr>';return;}
   const entries=rows.filter(r=>r.name).map(r=>({
     id:r.id,name:r.name,picks:r.picks,mpreds:r.mpreds,kopreds:r.kopreds,champion:r.champion,
     gc:r.picks?Object.values(r.picks).reduce((s,gp)=>s+Object.values(gp).filter(v=>v>0).length,0):0,
@@ -1437,10 +1437,25 @@ async function loadLeaderboard(){
     kc:r.kopreds?Object.values(r.kopreds).filter(v=>v!=='').length:0,
     score:calcScore(r)
   })).sort((a,b)=>{if(a.score===null&&b.score===null)return a.name.localeCompare(b.name);if(a.score===null)return 1;if(b.score===null)return-1;return b.score-a.score;});
-  if(entries.length===0){tbody.innerHTML='<tr><td colspan="6" style="padding:1.5rem;text-align:center;color:var(--muted);font-style:italic">No submissions yet.</td></tr>';return;}
+  if(entries.length===0){tbody.innerHTML='<tr><td colspan="7" style="padding:1.5rem;text-align:center;color:var(--muted);font-style:italic">No submissions yet.</td></tr>';return;}
+  const picksVisible = groupLocked(); // picks only visible after tournament starts
+
+  // Update info banner
+  const banner = document.getElementById('lbInfoBanner');
+  if(banner){
+    if(!picksVisible){
+      banner.innerHTML = `<strong>&#128274; Picks are hidden</strong> until the tournament starts on June 11 at 3pm ET — so nobody can copy each other! You can see how many picks everyone has made, but not what they picked. <button onclick="loadLeaderboard()" style="background:none;border:none;cursor:pointer;color:var(--blue-d);font-size:.75rem;text-decoration:underline;font-family:'DM Sans',sans-serif">Refresh</button>`;
+    } else {
+      banner.innerHTML = `Live standings — click <strong>&#128065; View</strong> to see anyone's picks. <button onclick="loadLeaderboard()" style="background:none;border:none;cursor:pointer;color:var(--blue-d);font-size:.75rem;text-decoration:underline;font-family:'DM Sans',sans-serif">Refresh</button>`;
+    }
+  }
+
   tbody.innerHTML=entries.map((e,i)=>{
     const rc=i===0&&e.score!==null?'g':i===1&&e.score!==null?'s':i===2&&e.score!==null?'b':'';
     const isMe=e.id===myId;
+    const viewBtn = picksVisible
+      ? `<button class="p-view" onclick="viewParticipantPicks('${e.id}')" style="font-size:.68rem;padding:2px 8px">&#128065; View</button>`
+      : `<span style="font-size:.68rem;color:#c0c8d0">&#128274;</span>`;
     return `<tr style="${isMe?'background:var(--amber-l)':''}">
       <td><span class="rnk ${rc}">${i+1}</span></td>
       <td style="font-weight:${isMe?500:400}">${e.name}${isMe?'<span style="font-size:.63rem;color:#854F0B;margin-left:5px">you</span>':''}</td>
@@ -1448,6 +1463,7 @@ async function loadLeaderboard(){
       <td style="text-align:center;color:var(--muted);font-size:.73rem">${e.mc}/72</td>
       <td style="text-align:center;color:var(--muted);font-size:.73rem">${e.kc}/32</td>
       <td style="text-align:center">${e.score!==null?`<span class="spts">${e.score}</span>`:'<span style="color:#c0c8d0">—</span>'}</td>
+      <td style="text-align:center">${viewBtn}</td>
     </tr>`;
   }).join('');
 }
