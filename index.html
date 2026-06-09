@@ -609,20 +609,14 @@ async function doRegister(){
   if(pin.length !== 4){ err.textContent='Please enter a 4-digit PIN.'; return; }
   if(pin !== conf){ err.textContent='PINs do not match.'; return; }
   btn.disabled=true; btn.textContent='Checking code…'; err.textContent='';
-  // Verify join code via Edge Function
+  // Verify join code locally using SHA-256 hash
+  // The actual code is never stored in plain text
   try {
-    const payload = { password: code, type: 'joincode' };
-    console.log('Sending to Edge Function:', JSON.stringify(payload));
-    const codeRes = await fetch(`${SUPABASE_URL}/functions/v1/verify-password`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY },
-      body: JSON.stringify(payload)
-    });
-    const codeText = await codeRes.text();
-    console.log('Edge Function response:', codeRes.status, codeText);
-    const codeData = JSON.parse(codeText);
-    if(!codeData.success){
-      err.textContent = `Invalid join code (response: ${codeText}). Ask the organiser for the correct code.`;
+    const VALID_CODE_HASH = '74dc6d3785f41dadfc02d6a911221865514fcf8ab9160a7bdfad7e7fc5f7617c';
+    const codeBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(code));
+    const codeHash = Array.from(new Uint8Array(codeBuffer)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    if(codeHash !== VALID_CODE_HASH){
+      err.textContent = 'Invalid join code. Ask the organiser for the correct code.';
       btn.disabled=false; btn.textContent='Create account'; return;
     }
   } catch(e){
