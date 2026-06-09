@@ -234,6 +234,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--ink);mi
     </div>
     <div id="loginRegister" style="display:none">
       <div class="login-field"><label>Your name</label><input id="regName" placeholder="Enter your name" autocomplete="username"></div>
+      <div class="login-field"><label>Join code</label><input id="regCode" placeholder="Enter the pool join code" autocomplete="off" style="letter-spacing:.1em;text-transform:uppercase"></div>
       <div class="login-field"><label>Choose a 4-digit PIN</label>
         <div class="pin-row">
           <input class="pin-digit" id="reg0" type="password" inputmode="numeric" maxlength="1" oninput="pinNav('reg',0,this)">
@@ -597,15 +598,34 @@ async function doSignIn(){
 
 async function doRegister(){
   const name  = document.getElementById('regName').value.trim();
+  const code  = document.getElementById('regCode').value.trim().toUpperCase();
   const pin   = getPin('reg');
   const conf  = getPin('conf');
   const err   = document.getElementById('regErr');
   const btn   = document.getElementById('regBtn');
   if(!name){ err.textContent='Please enter your name.'; return; }
   if(name.length < 2){ err.textContent='Name must be at least 2 characters.'; return; }
+  if(!code){ err.textContent='Please enter the join code.'; return; }
   if(pin.length !== 4){ err.textContent='Please enter a 4-digit PIN.'; return; }
   if(pin !== conf){ err.textContent='PINs do not match.'; return; }
-  btn.disabled=true; btn.textContent='Creating account…'; err.textContent='';
+  btn.disabled=true; btn.textContent='Checking code…'; err.textContent='';
+  // Verify join code via Edge Function
+  try {
+    const codeRes = await fetch(`${SUPABASE_URL}/functions/v1/verify-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY },
+      body: JSON.stringify({ password: code, type: 'joincode' })
+    });
+    const codeData = await codeRes.json();
+    if(!codeData.success){
+      err.textContent = 'Invalid join code. Ask the organiser for the correct code.';
+      btn.disabled=false; btn.textContent='Create account'; return;
+    }
+  } catch(e){
+    err.textContent = 'Could not verify join code. Check your connection.';
+    btn.disabled=false; btn.textContent='Create account'; return;
+  }
+  btn.textContent='Creating account…';
   try {
     // Check name not already taken — search all records and filter client-side
     // to avoid issues with column indexing
