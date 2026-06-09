@@ -611,18 +611,23 @@ async function doRegister(){
   btn.disabled=true; btn.textContent='Checking code…'; err.textContent='';
   // Verify join code via Edge Function
   try {
+    const payload = { password: code, type: 'joincode' };
+    console.log('Sending to Edge Function:', JSON.stringify(payload));
     const codeRes = await fetch(`${SUPABASE_URL}/functions/v1/verify-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY },
-      body: JSON.stringify({ password: code, type: 'joincode' })
+      body: JSON.stringify(payload)
     });
-    const codeData = await codeRes.json();
+    const codeText = await codeRes.text();
+    console.log('Edge Function response:', codeRes.status, codeText);
+    const codeData = JSON.parse(codeText);
     if(!codeData.success){
-      err.textContent = 'Invalid join code. Ask the organiser for the correct code.';
+      err.textContent = `Invalid join code (response: ${codeText}). Ask the organiser for the correct code.`;
       btn.disabled=false; btn.textContent='Create account'; return;
     }
   } catch(e){
-    err.textContent = 'Could not verify join code. Check your connection.';
+    console.error('Join code error:', e);
+    err.textContent = 'Could not verify join code: ' + e.message;
     btn.disabled=false; btn.textContent='Create account'; return;
   }
   btn.textContent='Creating account…';
