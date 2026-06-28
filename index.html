@@ -532,6 +532,7 @@ function emptyPicks(){
     mscores:Object.fromEntries(MATCHES.map(m=>[m.id,{h:'',a:''}])),
     kopreds:Object.fromEntries(KO_MATCHES.map(m=>[m.id,''])),
   koscores:Object.fromEntries(KO_MATCHES.map(m=>[m.id,{h:'',a:''}])),
+  // kopreds_hda stored alongside kopreds
     champion:null
   };
 }
@@ -1348,38 +1349,87 @@ function buildKnockoutTab(){
   renderKnockoutList();
 }
 function renderKnockoutList(){
-  const container=document.getElementById('koList');if(!container)return;
-  container.innerHTML=KO_ROUNDS.map(round=>{
-    const matches=KO_MATCHES.filter(m=>m.round===round.id);
-    return `<div class="ko-round">
-      <div class="ko-round-hdr">${round.label} <small>${round.dates}</small></div>
-      ${matches.map(m=>{
-        const ko=results.ko?.[m.id];
-        const t1=ko?.t1||(m.h||'');const t2=ko?.t2||(m.a||'');
-        const pred=state.kopreds[m.id]||'';
-        const btn1label=t1||m.label?.split(' vs ')?.[0]||'TBD';
-        const btn2label=t2||m.label?.split(' vs ')?.[1]||'TBD';
-        const isKnown=!!(t1&&t2);
-        const timeStr=m.time?` · ${m.time}`:'';
-        return `<div class="ko-card">
-          <div class="ko-label">${isKnown?`<span class="team-name">${t1}</span> <span style="color:var(--muted);font-size:.7rem">vs</span> <span class="team-name">${t2}</span>`:`<span class="bracket-label">${m.label||'TBD'}</span>`}</div>
-          <div class="ko-btns">
-            <button class="ko-btn${pred===btn1label?' sel':''}" onclick="setKoPred('${m.id}','${btn1label.replace(/'/g,"\\'")}',this)">${btn1label}</button>
-            <button class="ko-btn${pred===btn2label?' sel':''}" onclick="setKoPred('${m.id}','${btn2label.replace(/'/g,"\\'")}',this)">${btn2label}</button>
-          </div>
-          <div class="ko-venue">${m.date}${timeStr} · ${m.venue}</div>
-        </div>`;
-      }).join('')}
-    </div>`;
-  }).join('');
+  var container=document.getElementById('koList');if(!container)return;
+  var html='';
+  KO_ROUNDS.forEach(function(round){
+    var matches=KO_MATCHES.filter(function(m){return m.round===round.id;});
+    html+='<div class="ko-round"><div class="ko-round-hdr">'+round.label+' <small>'+round.dates+'</small></div>';
+    matches.forEach(function(m){
+      var ko=results.ko&&results.ko[m.id]?results.ko[m.id]:{};
+      var t1=ko.t1||(m.h||'');
+      var t2=ko.t2||(m.a||'');
+      var hda=state.kopreds[m.id+'_hda']||'';
+      var winner=state.kopreds[m.id]||'';
+      if(!state.koscores[m.id])state.koscores[m.id]={h:'',a:''};
+      var sh=state.koscores[m.id].h!==undefined?state.koscores[m.id].h:'';
+      var sa=state.koscores[m.id].a!==undefined?state.koscores[m.id].a:'';
+      var hasScore=sh!==''&&sa!=='';
+      var btn1=t1||'TBD';
+      var btn2=t2||'TBD';
+      if(!t1&&m.label){var parts=m.label.split(' vs ');btn1=parts[0]||'TBD';btn2=parts[1]||'TBD';}
+      var isKnown=!!(t1&&t2);
+      var timeStr=m.time?' · '+m.time:'';
+      var a1=isKnown?t1.split(' ')[0]:'H';
+      var a2=isKnown?t2.split(' ')[0]:'A';
+      var scoreColor=hasScore?'var(--amber)':'var(--border)';
+      var scoreBg=hasScore?'var(--amber-l)':'var(--white)';
+      html+='<div class="ko-card" style="flex-wrap:wrap;gap:.6rem">';
+      // Match label
+      if(isKnown){html+='<div class="ko-label" style="width:100%;margin-bottom:2px"><span class="team-name">'+t1+'</span> <span style="color:var(--muted);font-size:.7rem">vs</span> <span class="team-name">'+t2+'</span></div>';}
+      else{html+='<div class="ko-label" style="width:100%;margin-bottom:2px"><span class="bracket-label">'+(m.label||'TBD')+'</span></div>';}
+      // Predictions row
+      html+='<div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap">';
+      // Result 90min
+      html+='<div style="display:flex;flex-direction:column;align-items:center;gap:3px">';
+      html+='<span style="font-size:.58rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Result (90\')</span>';
+      html+='<div style="display:flex;gap:.3rem">';
+      html+='<button class="pb'+(hda==='h'?' h':'')+'" onclick="setKoPredHDA(\''+m.id+'\',\'h\')">'+a1+'</button>';
+      html+='<button class="pb'+(hda==='d'?' d':'')+'" onclick="setKoPredHDA(\''+m.id+'\',\'d\')">D</button>';
+      html+='<button class="pb'+(hda==='a'?' a':'')+'" onclick="setKoPredHDA(\''+m.id+'\',\'a\')">'+a2+'</button>';
+      html+='</div></div>';
+      // Score
+      html+='<div style="display:flex;flex-direction:column;align-items:center;gap:3px">';
+      html+='<span style="font-size:.58rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Score</span>';
+      html+='<div style="display:flex;align-items:center;gap:3px">';
+      html+='<input type="number" min="0" max="20" value="'+sh+'" placeholder="0" style="width:32px;text-align:center;border:1px solid '+scoreColor+';border-radius:5px;padding:2px 3px;font-size:.78rem;background:'+scoreBg+';" oninput="setKoScore(\''+m.id+'\',\'h\',this.value)">';
+      html+='<span style="font-size:.65rem;color:var(--muted)">:</span>';
+      html+='<input type="number" min="0" max="20" value="'+sa+'" placeholder="0" style="width:32px;text-align:center;border:1px solid '+scoreColor+';border-radius:5px;padding:2px 3px;font-size:.78rem;background:'+scoreBg+';" oninput="setKoScore(\''+m.id+'\',\'a\',this.value)">';
+      if(hasScore){html+='<span style="font-size:.63rem;color:var(--amber-d);margin-left:2px">+2</span>';}
+      html+='</div></div>';
+      // Winner
+      html+='<div style="display:flex;flex-direction:column;align-items:center;gap:3px">';
+      html+='<span style="font-size:.58rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Winner</span>';
+      html+='<div style="display:flex;gap:.3rem">';
+      html+='<button class="ko-btn'+(winner===btn1?' sel':'')+'" onclick="setKoPred(\''+m.id+'\',this.textContent)">'+btn1+'</button>';
+      html+='<button class="ko-btn'+(winner===btn2?' sel':'')+'" onclick="setKoPred(\''+m.id+'\',this.textContent)">'+btn2+'</button>';
+      html+='</div></div>';
+      html+='</div>';
+      html+='<div class="ko-venue" style="width:100%;margin-top:2px">'+m.date+timeStr+' · '+m.venue+'</div>';
+      html+='</div>';
+    });
+    html+='</div>';
+  });
+  container.innerHTML=html;
 }
-function setKoPred(id,val,btn){
+function setKoPredHDA(id,val){
+  if(matchLocked(id)){showToast('This match is locked — kickoff is less than 60 minutes away.');return;}
+  state.kopreds[id+'_hda']=state.kopreds[id+'_hda']===val?'':val;
+  renderKnockoutList();updateProgress();debounceSave();
+}
+function setKoScore(id,side,val){
+  if(matchLocked(id)){showToast('This match is locked — kickoff is less than 60 minutes away.');return;}
+  if(!state.koscores[id])state.koscores[id]={h:'',a:''};
+  state.koscores[id][side]=val===''?'':parseInt(val)||0;
+  var h=state.koscores[id].h;var a=state.koscores[id].a;
+  if(h!==''&&a!==''){var hi=parseInt(h),ai=parseInt(a);state.kopreds[id+'_hda']=hi>ai?'h':hi<ai?'a':'d';}
+  renderKnockoutList();updateProgress();debounceSave();
+}
+function setKoPred(id,val){
   if(matchLocked(id)){showToast('This match is locked — kickoff is less than 60 minutes away.');return;}
   state.kopreds[id]=state.kopreds[id]===val?'':val;
-  // re-render to update button states
-  renderKnockoutList();
-  updateProgress();debounceSave();
+  renderKnockoutList();updateProgress();debounceSave();
 }
+
 
 // ── CHAMPION TAB ──────────────────────────────────────────────────────
 function buildChampionTab(){
