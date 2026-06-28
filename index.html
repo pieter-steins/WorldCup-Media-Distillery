@@ -309,27 +309,43 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const LOCK_MINS = 60;
 const MATCH_KICKOFFS = {'m1':new Date('2026-06-11T23:00:00Z'),'m2':new Date('2026-06-11T23:00:00Z'),'m3':new Date('2026-06-12T19:00:00Z'),'m4':new Date('2026-06-12T23:00:00Z'),'m5':new Date('2026-06-13T19:00:00Z'),'m6':new Date('2026-06-13T19:00:00Z'),'m7':new Date('2026-06-13T22:00:00Z'),'m8':new Date('2026-06-13T22:00:00Z'),'m9':new Date('2026-06-14T19:00:00Z'),'m10':new Date('2026-06-14T19:00:00Z'),'m11':new Date('2026-06-14T22:00:00Z'),'m12':new Date('2026-06-14T22:00:00Z'),'m13':new Date('2026-06-15T19:00:00Z'),'m14':new Date('2026-06-15T19:00:00Z'),'m15':new Date('2026-06-15T22:00:00Z'),'m16':new Date('2026-06-15T22:00:00Z'),'m17':new Date('2026-06-16T19:00:00Z'),'m18':new Date('2026-06-16T19:00:00Z'),'m19':new Date('2026-06-16T22:00:00Z'),'m20':new Date('2026-06-16T22:00:00Z'),'m21':new Date('2026-06-17T19:00:00Z'),'m22':new Date('2026-06-17T19:00:00Z'),'m23':new Date('2026-06-17T22:00:00Z'),'m24':new Date('2026-06-17T22:00:00Z'),'m25':new Date('2026-06-18T19:00:00Z'),'m26':new Date('2026-06-18T19:00:00Z'),'m27':new Date('2026-06-18T22:00:00Z'),'m28':new Date('2026-06-18T22:00:00Z'),'m29':new Date('2026-06-19T19:00:00Z'),'m30':new Date('2026-06-19T19:00:00Z'),'m31':new Date('2026-06-19T22:00:00Z'),'m32':new Date('2026-06-19T22:00:00Z'),'m33':new Date('2026-06-20T19:00:00Z'),'m34':new Date('2026-06-20T19:00:00Z'),'m35':new Date('2026-06-20T22:00:00Z'),'m36':new Date('2026-06-20T22:00:00Z'),'m37':new Date('2026-06-21T19:00:00Z'),'m38':new Date('2026-06-21T19:00:00Z'),'m39':new Date('2026-06-21T22:00:00Z'),'m40':new Date('2026-06-21T22:00:00Z'),'m41':new Date('2026-06-22T19:00:00Z'),'m42':new Date('2026-06-22T19:00:00Z'),'m43':new Date('2026-06-22T22:00:00Z'),'m44':new Date('2026-06-22T22:00:00Z'),'m45':new Date('2026-06-23T19:00:00Z'),'m46':new Date('2026-06-23T19:00:00Z'),'m47':new Date('2026-06-23T22:00:00Z'),'m48':new Date('2026-06-23T22:00:00Z'),'m49':new Date('2026-06-24T22:00:00Z'),'m50':new Date('2026-06-24T22:00:00Z'),'m51':new Date('2026-06-24T22:00:00Z'),'m52':new Date('2026-06-24T22:00:00Z'),'m53':new Date('2026-06-24T22:00:00Z'),'m54':new Date('2026-06-24T22:00:00Z'),'m55':new Date('2026-06-25T19:00:00Z'),'m56':new Date('2026-06-25T19:00:00Z'),'m57':new Date('2026-06-25T22:00:00Z'),'m58':new Date('2026-06-25T22:00:00Z'),'m59':new Date('2026-06-25T22:00:00Z'),'m60':new Date('2026-06-25T22:00:00Z'),'m61':new Date('2026-06-26T19:00:00Z'),'m62':new Date('2026-06-26T19:00:00Z'),'m63':new Date('2026-06-26T22:00:00Z'),'m64':new Date('2026-06-26T22:00:00Z'),'m65':new Date('2026-06-27T22:00:00Z'),'m66':new Date('2026-06-27T22:00:00Z'),'m67':new Date('2026-06-27T22:00:00Z'),'m68':new Date('2026-06-27T22:00:00Z'),'m69':new Date('2026-06-27T22:00:00Z'),'m70':new Date('2026-06-27T22:00:00Z'),'m71':new Date('2026-06-27T22:00:00Z'),'m72':new Date('2026-06-27T22:00:00Z')};
 const KO_KICKOFFS    = {
-  // Round of 32
-  'k73':new Date('2026-06-28T18:55:00Z') /* locks 5 min before 21:00 Amsterdam */,'k76':new Date('2026-06-29T18:00:00Z'),
-  'k74':new Date('2026-06-29T21:30:00Z'),'k75':new Date('2026-06-30T02:00:00Z'),
-  'k78':new Date('2026-06-30T18:00:00Z'),'k77':new Date('2026-06-30T22:00:00Z'),
-  'k79':new Date('2026-07-01T02:00:00Z'),'k80':new Date('2026-07-01T17:00:00Z'),
-  'k81':new Date('2026-07-01T21:00:00Z'),'k82':new Date('2026-07-01T21:00:00Z'),
-  'k84':new Date('2026-07-02T20:00:00Z'),'k83':new Date('2026-07-03T00:00:00Z'),
-  'k85':new Date('2026-07-03T04:00:00Z'),'k88':new Date('2026-07-03T19:00:00Z'),
-  'k86':new Date('2026-07-03T23:00:00Z'),'k87':new Date('2026-07-04T02:30:00Z'),
-  // Round of 16 (Jul 4-7, approx 19:00 and 23:00 UTC)
-  'k89':new Date('2026-07-04T19:00:00Z'),'k90':new Date('2026-07-04T23:00:00Z'),
-  'k91':new Date('2026-07-05T19:00:00Z'),'k92':new Date('2026-07-05T23:00:00Z'),
-  'k93':new Date('2026-07-06T19:00:00Z'),'k94':new Date('2026-07-06T23:00:00Z'),
-  'k95':new Date('2026-07-07T19:00:00Z'),'k96':new Date('2026-07-07T23:00:00Z'),
-  // Quarter-finals (Jul 9-11)
-  'k97':new Date('2026-07-09T22:00:00Z'),'k98':new Date('2026-07-10T19:00:00Z'),
-  'k99':new Date('2026-07-10T23:00:00Z'),'k100':new Date('2026-07-11T22:00:00Z'),
-  // Semi-finals (Jul 14-15)
-  'k101':new Date('2026-07-14T23:00:00Z'),'k102':new Date('2026-07-15T23:00:00Z'),
+  // Round of 32 — all times UTC (ET+4)
+  'k73':new Date('2026-06-28T18:55:00Z'), // 3pm ET Sun Jun 28 - S.Africa vs Canada (locks 5 min before)
+  'k76':new Date('2026-06-29T17:00:00Z'), // 1pm ET Mon Jun 29 - Brazil vs Japan
+  'k74':new Date('2026-06-29T20:30:00Z'), // 4:30pm ET Mon Jun 29 - Germany vs Paraguay
+  'k75':new Date('2026-06-30T01:00:00Z'), // 9pm ET Mon Jun 29 - Netherlands vs Morocco
+  'k78':new Date('2026-06-30T17:00:00Z'), // 1pm ET Tue Jun 30 - Ivory Coast vs Norway
+  'k77':new Date('2026-06-30T21:00:00Z'), // 5pm ET Tue Jun 30 - France vs Sweden
+  'k79':new Date('2026-07-01T01:00:00Z'), // 9pm ET Tue Jun 30 - Mexico vs Ecuador
+  'k80':new Date('2026-07-01T16:00:00Z'), // 12pm ET Wed Jul 1 - England vs DR Congo
+  'k82':new Date('2026-07-01T20:00:00Z'), // 4pm ET Wed Jul 1 - Belgium vs Senegal
+  'k81':new Date('2026-07-02T00:00:00Z'), // 8pm ET Wed Jul 1 - USA vs Bosnia
+  'k84':new Date('2026-07-02T19:00:00Z'), // 3pm ET Thu Jul 2 - Spain vs Austria
+  'k83':new Date('2026-07-02T23:00:00Z'), // 7pm ET Thu Jul 2 - Portugal vs Croatia
+  'k85':new Date('2026-07-03T03:00:00Z'), // 11pm ET Thu Jul 2 - Switzerland vs Algeria
+  'k88':new Date('2026-07-03T18:00:00Z'), // 2pm ET Fri Jul 3 - Australia vs Egypt (CDT)
+  'k86':new Date('2026-07-03T22:00:00Z'), // 6pm ET Fri Jul 3 - Argentina vs Cape Verde
+  'k87':new Date('2026-07-04T00:30:00Z'), // 8:30pm ET Fri Jul 3 - Colombia vs Ghana
+  // Round of 16 — Jul 4-7
+  'k90':new Date('2026-07-04T17:00:00Z'), // 1pm ET Sat Jul 4
+  'k89':new Date('2026-07-04T21:00:00Z'), // 5pm ET Sat Jul 4
+  'k91':new Date('2026-07-05T20:00:00Z'), // 4pm ET Sun Jul 5
+  'k92':new Date('2026-07-06T00:00:00Z'), // 8pm ET Sun Jul 5
+  'k93':new Date('2026-07-06T19:00:00Z'), // 3pm ET Mon Jul 6
+  'k94':new Date('2026-07-07T00:00:00Z'), // 8pm ET Mon Jul 6
+  'k95':new Date('2026-07-07T16:00:00Z'), // 12pm ET Tue Jul 7
+  'k96':new Date('2026-07-07T20:00:00Z'), // 4pm ET Tue Jul 7
+  // Quarter-finals — Jul 9-11
+  'k97':new Date('2026-07-09T20:00:00Z'), // 4pm ET Thu Jul 9
+  'k98':new Date('2026-07-10T19:00:00Z'), // 3pm ET Fri Jul 10
+  'k99':new Date('2026-07-10T23:00:00Z'), // 7pm ET Fri Jul 10
+  'k100':new Date('2026-07-11T20:00:00Z'),// 4pm ET Sat Jul 11
+  // Semi-finals — Jul 14-15
+  'k101':new Date('2026-07-14T23:00:00Z'),// 7pm ET Tue Jul 14
+  'k102':new Date('2026-07-15T23:00:00Z'),// 7pm ET Wed Jul 15
   // Third place + Final
-  'k103':new Date('2026-07-18T23:00:00Z'),'k104':new Date('2026-07-19T23:00:00Z')
+  'k103':new Date('2026-07-18T23:00:00Z'),// 7pm ET Fri Jul 18
+  'k104':new Date('2026-07-19T19:00:00Z') // 3pm ET Sun Jul 19 - Final
 };
 
 // First group match kickoff (for champion/group picks global lock)
