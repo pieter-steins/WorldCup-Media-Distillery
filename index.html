@@ -304,17 +304,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--ink);mi
 const SUPABASE_URL = "https://lqnvxvobzthlaonqvzti.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxxbnZ4dm9ienRobGFvbnF2enRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNTUwMTcsImV4cCI6MjA5NDczMTAxN30.GXJOF2xrsOsX8eOLbJWaXWopu4ETu_CmHHXSVDvJZ5Y";
 
-// ── DEADLINES ────────────────────────────────────────────────────────
-// Group stage picks + champion: lock at first group match (Jun 11, 19:00 UTC = 3pm ET)
-const GROUP_DEADLINE = new Date('2026-06-11T19:00:00Z');
-// Knockout predictions: lock at first R32 match (Jun 28, 19:00 UTC = 3pm ET)
-const KO_DEADLINE    = new Date('2026-06-28T19:00:00Z');
+// ── DEADLINES ─────────────────────────────────────────────────────────
+// Each match locks 60 minutes before its own kickoff
+const LOCK_MINS = 60;
+const MATCH_KICKOFFS = {'m1':new Date('2026-06-11T23:00:00Z'),'m2':new Date('2026-06-11T23:00:00Z'),'m3':new Date('2026-06-12T19:00:00Z'),'m4':new Date('2026-06-12T23:00:00Z'),'m5':new Date('2026-06-13T19:00:00Z'),'m6':new Date('2026-06-13T19:00:00Z'),'m7':new Date('2026-06-13T22:00:00Z'),'m8':new Date('2026-06-13T22:00:00Z'),'m9':new Date('2026-06-14T19:00:00Z'),'m10':new Date('2026-06-14T19:00:00Z'),'m11':new Date('2026-06-14T22:00:00Z'),'m12':new Date('2026-06-14T22:00:00Z'),'m13':new Date('2026-06-15T19:00:00Z'),'m14':new Date('2026-06-15T19:00:00Z'),'m15':new Date('2026-06-15T22:00:00Z'),'m16':new Date('2026-06-15T22:00:00Z'),'m17':new Date('2026-06-16T19:00:00Z'),'m18':new Date('2026-06-16T19:00:00Z'),'m19':new Date('2026-06-16T22:00:00Z'),'m20':new Date('2026-06-16T22:00:00Z'),'m21':new Date('2026-06-17T19:00:00Z'),'m22':new Date('2026-06-17T19:00:00Z'),'m23':new Date('2026-06-17T22:00:00Z'),'m24':new Date('2026-06-17T22:00:00Z'),'m25':new Date('2026-06-18T19:00:00Z'),'m26':new Date('2026-06-18T19:00:00Z'),'m27':new Date('2026-06-18T22:00:00Z'),'m28':new Date('2026-06-18T22:00:00Z'),'m29':new Date('2026-06-19T19:00:00Z'),'m30':new Date('2026-06-19T19:00:00Z'),'m31':new Date('2026-06-19T22:00:00Z'),'m32':new Date('2026-06-19T22:00:00Z'),'m33':new Date('2026-06-20T19:00:00Z'),'m34':new Date('2026-06-20T19:00:00Z'),'m35':new Date('2026-06-20T22:00:00Z'),'m36':new Date('2026-06-20T22:00:00Z'),'m37':new Date('2026-06-21T19:00:00Z'),'m38':new Date('2026-06-21T19:00:00Z'),'m39':new Date('2026-06-21T22:00:00Z'),'m40':new Date('2026-06-21T22:00:00Z'),'m41':new Date('2026-06-22T19:00:00Z'),'m42':new Date('2026-06-22T19:00:00Z'),'m43':new Date('2026-06-22T22:00:00Z'),'m44':new Date('2026-06-22T22:00:00Z'),'m45':new Date('2026-06-23T19:00:00Z'),'m46':new Date('2026-06-23T19:00:00Z'),'m47':new Date('2026-06-23T22:00:00Z'),'m48':new Date('2026-06-23T22:00:00Z'),'m49':new Date('2026-06-24T22:00:00Z'),'m50':new Date('2026-06-24T22:00:00Z'),'m51':new Date('2026-06-24T22:00:00Z'),'m52':new Date('2026-06-24T22:00:00Z'),'m53':new Date('2026-06-24T22:00:00Z'),'m54':new Date('2026-06-24T22:00:00Z'),'m55':new Date('2026-06-25T19:00:00Z'),'m56':new Date('2026-06-25T19:00:00Z'),'m57':new Date('2026-06-25T22:00:00Z'),'m58':new Date('2026-06-25T22:00:00Z'),'m59':new Date('2026-06-25T22:00:00Z'),'m60':new Date('2026-06-25T22:00:00Z'),'m61':new Date('2026-06-26T19:00:00Z'),'m62':new Date('2026-06-26T19:00:00Z'),'m63':new Date('2026-06-26T22:00:00Z'),'m64':new Date('2026-06-26T22:00:00Z'),'m65':new Date('2026-06-27T22:00:00Z'),'m66':new Date('2026-06-27T22:00:00Z'),'m67':new Date('2026-06-27T22:00:00Z'),'m68':new Date('2026-06-27T22:00:00Z'),'m69':new Date('2026-06-27T22:00:00Z'),'m70':new Date('2026-06-27T22:00:00Z'),'m71':new Date('2026-06-27T22:00:00Z'),'m72':new Date('2026-06-27T22:00:00Z')};
+const KO_KICKOFFS    = {'k73':new Date('2026-06-28T20:00:00Z'),'k76':new Date('2026-06-29T18:00:00Z'),'k74':new Date('2026-06-29T21:30:00Z'),'k75':new Date('2026-06-30T02:00:00Z'),'k78':new Date('2026-06-30T18:00:00Z'),'k77':new Date('2026-06-30T22:00:00Z'),'k79':new Date('2026-07-01T02:00:00Z'),'k80':new Date('2026-07-01T17:00:00Z'),'k81':new Date('2026-07-01T21:00:00Z'),'k82':new Date('2026-07-01T21:00:00Z'),'k84':new Date('2026-07-02T20:00:00Z'),'k83':new Date('2026-07-03T00:00:00Z'),'k85':new Date('2026-07-03T04:00:00Z'),'k88':new Date('2026-07-03T19:00:00Z'),'k86':new Date('2026-07-03T23:00:00Z'),'k87':new Date('2026-07-04T02:30:00Z')};
 
+// First group match kickoff (for champion/group picks global lock)
+const GROUP_DEADLINE = new Date('2026-06-11T23:00:00Z'); // first kickoff - 60 min
+const KO_DEADLINE    = new Date('2026-06-28T20:00:00Z'); // first R32 kickoff - 60 min
+
+function matchLocked(id){
+  const ko = MATCH_KICKOFFS[id] || KO_KICKOFFS[id];
+  if(!ko) return false;
+  return new Date() >= new Date(ko.getTime() - LOCK_MINS*60*1000);
+}
 function groupLocked(){ return new Date() >= GROUP_DEADLINE; }
 function koLocked(){    return new Date() >= KO_DEADLINE; }
-
-// Keep isLocked() as alias for group lock (used in several places)
-function isLocked(){ return groupLocked(); }
+function isLocked(){    return groupLocked(); }
 
 function formatCountdown(deadline){
   const diff = deadline - new Date();
@@ -342,7 +349,7 @@ function phaseBanner(type){
       </div>`;
     return `
       <div style="background:var(--green-l);border:1px solid var(--green);border-radius:10px;padding:.75rem 1rem;font-size:.8rem;color:var(--green-d);margin-bottom:.9rem;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
-        <div style="display:flex;align-items:center;gap:8px"><span style="font-size:1.2rem">&#9203;</span><div><strong>Picks open</strong> — Make your group predictions before the first match on <strong>June 11 at 3:00 PM ET</strong>.</div></div>
+        <div style="display:flex;align-items:center;gap:8px"><span style="font-size:1.2rem">&#9203;</span><div><strong>Picks open</strong> — Each match locks <strong>60 minutes before kickoff</strong>. Group picks and champion lock with the first match on <strong>June 11</strong>.</div></div>
         <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:.04em;color:var(--green);white-space:nowrap" id="cdGroup">${groupCd||'Locking soon!'}</div>
       </div>`;
   }
@@ -524,6 +531,7 @@ function emptyPicks(){
     mpreds:Object.fromEntries(MATCHES.map(m=>[m.id,''])),
     mscores:Object.fromEntries(MATCHES.map(m=>[m.id,{h:'',a:''}])),
     kopreds:Object.fromEntries(KO_MATCHES.map(m=>[m.id,''])),
+  koscores:Object.fromEntries(KO_MATCHES.map(m=>[m.id,{h:'',a:''}])),
     champion:null
   };
 }
@@ -684,10 +692,14 @@ async function onLoginSuccess(row){
   if(row.mpreds)  Object.entries(row.mpreds).forEach(([id,v])=>{ if(id in state.mpreds) state.mpreds[id]=v; });
   if(row.mscores) Object.entries(row.mscores).forEach(([id,v])=>{ if(id in state.mscores) state.mscores[id]=v; });
   if(row.kopreds) Object.entries(row.kopreds).forEach(([id,v])=>{ if(id in state.kopreds) state.kopreds[id]=v; });
+  if(row.koscores) Object.entries(row.koscores).forEach(([id,v])=>{ if(id in state.koscores) state.koscores[id]=v; });
   state.champion = row.champion||null;
   // Show app
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('mainApp').style.display='block';
+  // Now safe to load results and leaderboard
+  await loadResults();
+  loadLeaderboard();
   document.getElementById('userBadgeName').textContent = row.name;
   // Set name field
   const ni = document.getElementById('playerName');
@@ -1078,6 +1090,7 @@ async function testConnection(){
 }
 
 async function init(){
+  // Build all tabs first (no Supabase calls yet)
   buildGroupsTab();
   buildAdminTab();
   buildMatchesTab();
@@ -1086,16 +1099,13 @@ async function init(){
   buildSummaryTab();
   buildLeaderboardTab();
   buildResultsTab();
-  await loadResults();
-  // Always show login screen first, then try to restore session
+  // Show login screen
   document.getElementById('loginScreen').style.display='flex';
   document.getElementById('mainApp').style.display='none';
-  const hasSession = await checkSession();
-  if(!hasSession){
-    // login screen already shown
-  }
   setInterval(applyLockState, 1000);
-  loadLeaderboard();
+  // Try to restore session — loadResults and loadLeaderboard
+  // are called inside onLoginSuccess after successful login
+  await checkSession();
 }
 
 // ── LOAD / SAVE ───────────────────────────────────────────────────────
@@ -1107,7 +1117,8 @@ async function loadMyPicks(){
     state.name=d.name||'';
     if(d.picks)Object.entries(d.picks).forEach(([g,gp])=>{if(state.picks[g])Object.entries(gp).forEach(([n,v])=>{if(n in state.picks[g])state.picks[g][n]=v;});});
     if(d.mpreds)Object.entries(d.mpreds).forEach(([id,v])=>{if(id in state.mpreds)state.mpreds[id]=v;});
-    if(d.kopreds)Object.entries(d.kopreds).forEach(([id,v])=>{if(id in state.kopreds)state.kopreds[id]=v;});
+    if(d.kopreds)Object.entries(d.kopreds).forEach(([id,v])=>{if(id in state.kopreds)state.kopreds[id]=v;})
+    if(d.koscores)Object.entries(d.koscores).forEach(([id,v])=>{if(id in state.koscores)state.koscores[id]=v;});
     if(d.mscores)Object.entries(d.mscores).forEach(([id,v])=>{if(id in state.mscores)state.mscores[id]=v;});
     state.champion=d.champion||null;
     refreshAllGroups();
@@ -1138,7 +1149,7 @@ async function saveMyPicks(){
   if(!myId) return;
   // Preserve _meta (auth info) in picks when saving
   const picksToSave = { ...state.picks, _meta: state._meta || {} };
-  const res=await SB.upsert('wc2026_picks',{id:myId,name:state.name,picks:picksToSave,mpreds:state.mpreds,mscores:state.mscores,kopreds:state.kopreds,champion:state.champion,updated_at:new Date().toISOString()});
+  const res=await SB.upsert('wc2026_picks',{id:myId,name:state.name,picks:picksToSave,mpreds:state.mpreds,mscores:state.mscores,kopreds:state.kopreds,koscores:state.koscores,champion:state.champion,updated_at:new Date().toISOString()});
   setSaving(res?.ok?'ok':'err');
   setTimeout(()=>setSaving(''),2500);
 }
@@ -1308,13 +1319,13 @@ function renderMatchesList(){
     </div>`).join('')||'<p style="color:var(--muted);font-size:.85rem;padding:.5rem 0">All picked!</p>';
 }
 function setPred(id,val){
-  if(isLocked()){showToast('Picks are locked — tournament has started.');return;}
+  if(matchLocked(id)){showToast('This match is locked — kickoff is less than 60 minutes away.');return;}
   state.mpreds[id]=state.mpreds[id]===val?'':val;
   renderMatchesList();updateProgress();debounceSave();
   const u=document.getElementById('mf-unpicked');if(u)u.textContent='Unpicked ('+(72-Object.values(state.mpreds).filter(v=>v!=='').length)+')';
 }
 function setScore(id,side,val){
-  if(isLocked()){showToast('Picks are locked — tournament has started.');return;}
+  if(matchLocked(id)){showToast('This match is locked — kickoff is less than 60 minutes away.');return;}
   if(!state.mscores[id])state.mscores[id]={h:'',a:''};
   state.mscores[id][side]=val===''?'':parseInt(val)||0;
   // auto-set H/D/A result based on score
@@ -1363,7 +1374,7 @@ function renderKnockoutList(){
   }).join('');
 }
 function setKoPred(id,val,btn){
-  if(koLocked()){showToast('Knockout picks are locked — Round of 32 has started.');return;}
+  if(matchLocked(id)){showToast('This match is locked — kickoff is less than 60 minutes away.');return;}
   state.kopreds[id]=state.kopreds[id]===val?'':val;
   // re-render to update button states
   renderKnockoutList();
@@ -1481,9 +1492,14 @@ function calcScore(d){
   // Knockout
   KO_MATCHES.forEach(m=>{
     const r=results.ko?.[m.id];if(!r?.winner)return;
-    const pred=d.kopreds?.[m.id]||'';if(pred!==r.winner)return;
+    const pred=d.kopreds?.[m.id]||'';
     const pts={r32:2,r16:2,qf:3,sf:4,tp:5,f:5}[m.round]||2;
-    s+=pts;
+    if(pred===r.winner){
+      s+=pts;
+      // Bonus for exact score after 90 min
+      const ks=d.koscores?.[m.id];
+      if(ks&&ks.h!==''&&ks.a!==''&&r.hg!==undefined&&r.ag!==undefined&&parseInt(ks.h)===parseInt(r.hg)&&parseInt(ks.a)===parseInt(r.ag))s+=2;
+    }
   });
   // Champion
   if(d.champion&&results.champion){
