@@ -477,22 +477,22 @@ const KO_ROUNDS=[
 ];
 const KO_MATCHES=[
   // Round of 32
-  {id:'k73', round:'r32',date:'Sun Jun 28',label:'2nd A vs 2nd B',         venue:'Los Angeles'},
-  {id:'k74', round:'r32',date:'Mon Jun 29',label:'1st E vs 3rd A/B/C/D/F', venue:'Boston'},
-  {id:'k75', round:'r32',date:'Mon Jun 29',label:'1st F vs 2nd C',         venue:'Monterrey'},
-  {id:'k76', round:'r32',date:'Mon Jun 29',label:'1st C vs 2nd F',         venue:'Houston'},
-  {id:'k77', round:'r32',date:'Mon Jun 29',label:'1st H vs 2nd J',         venue:'Los Angeles'},
-  {id:'k78', round:'r32',date:'Tue Jun 30',label:'2nd E vs 2nd I',         venue:'Dallas'},
-  {id:'k79', round:'r32',date:'Tue Jun 30',label:'1st A vs 3rd C/E/F/H/I', venue:'Mexico City'},
-  {id:'k80', round:'r32',date:'Tue Jun 30',label:'1st I vs 3rd C/D/F/G/H', venue:'New York/NJ'},
-  {id:'k81', round:'r32',date:'Wed Jul 1', label:'1st D vs 3rd B/E/F/I/J', venue:'San Francisco'},
-  {id:'k82', round:'r32',date:'Wed Jul 1', label:'1st L vs 3rd E/H/I/J/K', venue:'Atlanta'},
-  {id:'k83', round:'r32',date:'Wed Jul 1', label:'1st K vs 3rd D/E/I/J/L', venue:'Kansas City'},
-  {id:'k84', round:'r32',date:'Thu Jul 2', label:'1st J vs 2nd L',         venue:'Miami'},
-  {id:'k85', round:'r32',date:'Thu Jul 2', label:'1st B vs 3rd E/F/G/I/J', venue:'Vancouver'},
-  {id:'k86', round:'r32',date:'Thu Jul 2', label:'1st G vs 3rd A/E/H/I/J', venue:'Seattle'},
-  {id:'k87', round:'r32',date:'Fri Jul 3', label:'2nd K vs 2nd L',         venue:'Toronto'},
-  {id:'k88', round:'r32',date:'Fri Jul 3', label:'2nd D vs 2nd G',         venue:'Dallas'},
+  {id:'k73', round:'r32',date:'Sat Jun 28',h:'South Africa', a:'Canada',              venue:'Los Angeles',  time:'21:00'},
+  {id:'k74', round:'r32',date:'Sun Jun 29',h:'Germany',      a:'Paraguay',            venue:'Boston',       time:'22:30'},
+  {id:'k75', round:'r32',date:'Mon Jun 30',h:'Netherlands',  a:'Morocco',             venue:'Monterrey',    time:'03:00'},
+  {id:'k76', round:'r32',date:'Sun Jun 29',h:'Brazil',       a:'Japan',               venue:'Houston',      time:'19:00'},
+  {id:'k77', round:'r32',date:'Mon Jun 30',h:'France',       a:'Sweden',              venue:'New York/NJ',  time:'23:00'},
+  {id:'k78', round:'r32',date:'Mon Jun 30',h:'Côte d'Ivoire',a:'Norway',             venue:'Dallas',       time:'19:00'},
+  {id:'k79', round:'r32',date:'Tue Jul 1', h:'Mexico',       a:'Ecuador',             venue:'Mexico City',  time:'03:00'},
+  {id:'k80', round:'r32',date:'Tue Jul 1', h:'England',      a:'DR Congo',            venue:'Atlanta',      time:'18:00'},
+  {id:'k81', round:'r32',date:'Tue Jul 1', h:'USA',          a:'Bosnia & Herz.',      venue:'Seattle',      time:'02:00'},
+  {id:'k82', round:'r32',date:'Tue Jul 1', h:'Belgium',      a:'Senegal',             venue:'San Francisco',time:'22:00'},
+  {id:'k83', round:'r32',date:'Wed Jul 2', h:'Portugal',     a:'Croatia',             venue:'Toronto',      time:'01:00'},
+  {id:'k84', round:'r32',date:'Wed Jul 2', h:'Spain',        a:'Austria',             venue:'Los Angeles',  time:'21:00'},
+  {id:'k85', round:'r32',date:'Thu Jul 3', h:'Switzerland',  a:'Algeria',             venue:'Vancouver',    time:'05:00'},
+  {id:'k86', round:'r32',date:'Fri Jul 4', h:'Argentina',    a:'Cabo Verde',          venue:'Miami',        time:'00:00'},
+  {id:'k87', round:'r32',date:'Fri Jul 4', h:'Colombia',     a:'Ghana',               venue:'Kansas City',  time:'03:30'},
+  {id:'k88', round:'r32',date:'Thu Jul 3', h:'Australia',    a:'Egypt',               venue:'Dallas',       time:'20:00'},
   // Round of 16
   {id:'k89', round:'r16',date:'Sat Jul 4', label:'Winner 74 vs Winner 77', venue:'Philadelphia'},
   {id:'k90', round:'r16',date:'Sat Jul 4', label:'Winner 73 vs Winner 75', venue:'Houston'},
@@ -799,7 +799,7 @@ function renderAdminTab(){
         <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.04em">&#9881; Admin Panel</div>
         <div style="display:flex;gap:.5rem">
           <button onclick="loadAdminData()" style="padding:6px 14px;background:var(--ink);color:#fff;border:none;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.78rem;cursor:pointer">&#8635; Refresh</button>
-          <button onclick="exportCSV()" style="padding:6px 14px;background:var(--green);color:#fff;border:none;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.78rem;cursor:pointer">&#8595; Export CSV</button>
+          <button onclick="exportCSV()" style="padding:6px 14px;background:var(--green);color:#fff;border:none;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.78rem;cursor:pointer">&#8595; Export Excel/CSV</button>
           <button onclick="adminUnlocked=false;renderAdminTab()" style="padding:6px 14px;background:none;border:1px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.78rem;cursor:pointer;color:var(--muted)">Lock</button>
         </div>
       </div>
@@ -988,16 +988,63 @@ function viewParticipantPicks(id){
 }
 
 function exportCSV(){
-  const sorted=[...adminParticipants].sort((a,b)=>{
-    if(a.score===null&&b.score===null)return a.name.localeCompare(b.name);
-    if(a.score===null)return 1;if(b.score===null)return-1;return b.score-a.score;
+  const sorted=[...adminParticipants].sort((a,b)=>a.name.localeCompare(b.name));
+
+  let csv = 'WORLD CUP 2026 POOL — MEDIA DISTILLERY\n';
+  csv += 'Exported: ' + new Date().toLocaleString('en-GB') + '\n\n';
+
+  // ── Section 1: Group picks (1st & 2nd per group per participant) ──
+  csv += 'GROUP STAGE PICKS\n';
+  const gpHeader = ['Group', 'Position', ...sorted.map(p => p.name)];
+  csv += gpHeader.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',') + '\n';
+  Object.entries(GROUPS).forEach(([g, teams]) => {
+    [['1st (2 pts)', 1], ['2nd (1 pt)', 2]].forEach(([pos, val]) => {
+      const row = [`Group ${g}`, pos];
+      sorted.forEach(p => {
+        const pick = p.picks?.[g]
+          ? Object.entries(p.picks[g]).find(([, v]) => v === val)?.[0] || '—'
+          : '—';
+        row.push(pick);
+      });
+      csv += row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',') + '\n';
+    });
   });
-  const rows=[['Rank','Name','Group Picks','Match Preds','KO Preds','Champion','Score','Last Updated']];
-  sorted.forEach((p,i)=>{
-    rows.push([i+1,p.name,p.gc+'/24',p.mc+'/72',p.kc+'/32',p.champion||'—',p.score!==null?p.score:'—',p.updatedAt?new Date(p.updatedAt).toLocaleString('en-GB'):'—']);
+
+  // ── Section 2: Match predictions (H/D/A + score) ──────────────────
+  csv += '\n\nMATCH PREDICTIONS\n';
+  const mHeader = ['Date', 'Group', 'Home', 'Away', ...sorted.map(p => p.name)];
+  csv += mHeader.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',') + '\n';
+  MATCHES.forEach(m => {
+    const row = [m.date, `Group ${m.g}`, m.h, m.a];
+    sorted.forEach(p => {
+      const pred = p.mpreds?.[m.id] || '';
+      const score = p.mscores?.[m.id];
+      const hasScore = score && score.h !== '' && score.a !== '';
+      let cell = '—';
+      if(pred === 'h') cell = m.h + ' win';
+      else if(pred === 'd') cell = 'Draw';
+      else if(pred === 'a') cell = m.a + ' win';
+      if(hasScore) cell += ` (${score.h}-${score.a})`;
+      row.push(cell);
+    });
+    csv += row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',') + '\n';
   });
-  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='wc2026_pool_standings.csv';a.click();
+
+  // ── Section 3: Champion picks ─────────────────────────────────────
+  csv += '\n\nCHAMPION PICKS\n';
+  csv += ['Name', 'Champion'].map(v => `"${v}"`).join(',') + '\n';
+  sorted.forEach(p => {
+    csv += [`"${p.name}"`, `"${p.champion || '—'}"`].join(',') + '\n';
+  });
+
+  // Download
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'WC2026_GroupPhase_Predictions_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 
@@ -1297,18 +1344,19 @@ function renderKnockoutList(){
       <div class="ko-round-hdr">${round.label} <small>${round.dates}</small></div>
       ${matches.map(m=>{
         const ko=results.ko?.[m.id];
-        const t1=ko?.t1||'';const t2=ko?.t2||'';
+        const t1=ko?.t1||(m.h||'');const t2=ko?.t2||(m.a||'');
         const pred=state.kopreds[m.id]||'';
-        const btn1label=t1||m.label.split(' vs ')[0];
-        const btn2label=t2||m.label.split(' vs ')[1]||'';
+        const btn1label=t1||m.label?.split(' vs ')?.[0]||'TBD';
+        const btn2label=t2||m.label?.split(' vs ')?.[1]||'TBD';
         const isKnown=!!(t1&&t2);
+        const timeStr=m.time?` · ${m.time}`:'';
         return `<div class="ko-card">
-          <div class="ko-label">${isKnown?`<span class="team-name">${t1}</span> <span style="color:var(--muted);font-size:.7rem">vs</span> <span class="team-name">${t2}</span>`:`<span class="bracket-label">${m.label}</span>`}</div>
+          <div class="ko-label">${isKnown?`<span class="team-name">${t1}</span> <span style="color:var(--muted);font-size:.7rem">vs</span> <span class="team-name">${t2}</span>`:`<span class="bracket-label">${m.label||'TBD'}</span>`}</div>
           <div class="ko-btns">
             <button class="ko-btn${pred===btn1label?' sel':''}" onclick="setKoPred('${m.id}','${btn1label.replace(/'/g,"\\'")}',this)">${btn1label}</button>
             <button class="ko-btn${pred===btn2label?' sel':''}" onclick="setKoPred('${m.id}','${btn2label.replace(/'/g,"\\'")}',this)">${btn2label}</button>
           </div>
-          <div class="ko-venue">${m.date} · ${m.venue}</div>
+          <div class="ko-venue">${m.date}${timeStr} · ${m.venue}</div>
         </div>`;
       }).join('')}
     </div>`;
