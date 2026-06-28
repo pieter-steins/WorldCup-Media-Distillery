@@ -306,11 +306,12 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
 // ── DEADLINES ─────────────────────────────────────────────────────────
 // Each match locks 60 minutes before its own kickoff
-const LOCK_MINS = 60;
+const LOCK_MINS = 60; // default lock time in minutes before kickoff
+const MATCH_LOCK_OVERRIDE = {'k73': 5}; // per-match overrides in minutes
 const MATCH_KICKOFFS = {'m1':new Date('2026-06-11T23:00:00Z'),'m2':new Date('2026-06-11T23:00:00Z'),'m3':new Date('2026-06-12T19:00:00Z'),'m4':new Date('2026-06-12T23:00:00Z'),'m5':new Date('2026-06-13T19:00:00Z'),'m6':new Date('2026-06-13T19:00:00Z'),'m7':new Date('2026-06-13T22:00:00Z'),'m8':new Date('2026-06-13T22:00:00Z'),'m9':new Date('2026-06-14T19:00:00Z'),'m10':new Date('2026-06-14T19:00:00Z'),'m11':new Date('2026-06-14T22:00:00Z'),'m12':new Date('2026-06-14T22:00:00Z'),'m13':new Date('2026-06-15T19:00:00Z'),'m14':new Date('2026-06-15T19:00:00Z'),'m15':new Date('2026-06-15T22:00:00Z'),'m16':new Date('2026-06-15T22:00:00Z'),'m17':new Date('2026-06-16T19:00:00Z'),'m18':new Date('2026-06-16T19:00:00Z'),'m19':new Date('2026-06-16T22:00:00Z'),'m20':new Date('2026-06-16T22:00:00Z'),'m21':new Date('2026-06-17T19:00:00Z'),'m22':new Date('2026-06-17T19:00:00Z'),'m23':new Date('2026-06-17T22:00:00Z'),'m24':new Date('2026-06-17T22:00:00Z'),'m25':new Date('2026-06-18T19:00:00Z'),'m26':new Date('2026-06-18T19:00:00Z'),'m27':new Date('2026-06-18T22:00:00Z'),'m28':new Date('2026-06-18T22:00:00Z'),'m29':new Date('2026-06-19T19:00:00Z'),'m30':new Date('2026-06-19T19:00:00Z'),'m31':new Date('2026-06-19T22:00:00Z'),'m32':new Date('2026-06-19T22:00:00Z'),'m33':new Date('2026-06-20T19:00:00Z'),'m34':new Date('2026-06-20T19:00:00Z'),'m35':new Date('2026-06-20T22:00:00Z'),'m36':new Date('2026-06-20T22:00:00Z'),'m37':new Date('2026-06-21T19:00:00Z'),'m38':new Date('2026-06-21T19:00:00Z'),'m39':new Date('2026-06-21T22:00:00Z'),'m40':new Date('2026-06-21T22:00:00Z'),'m41':new Date('2026-06-22T19:00:00Z'),'m42':new Date('2026-06-22T19:00:00Z'),'m43':new Date('2026-06-22T22:00:00Z'),'m44':new Date('2026-06-22T22:00:00Z'),'m45':new Date('2026-06-23T19:00:00Z'),'m46':new Date('2026-06-23T19:00:00Z'),'m47':new Date('2026-06-23T22:00:00Z'),'m48':new Date('2026-06-23T22:00:00Z'),'m49':new Date('2026-06-24T22:00:00Z'),'m50':new Date('2026-06-24T22:00:00Z'),'m51':new Date('2026-06-24T22:00:00Z'),'m52':new Date('2026-06-24T22:00:00Z'),'m53':new Date('2026-06-24T22:00:00Z'),'m54':new Date('2026-06-24T22:00:00Z'),'m55':new Date('2026-06-25T19:00:00Z'),'m56':new Date('2026-06-25T19:00:00Z'),'m57':new Date('2026-06-25T22:00:00Z'),'m58':new Date('2026-06-25T22:00:00Z'),'m59':new Date('2026-06-25T22:00:00Z'),'m60':new Date('2026-06-25T22:00:00Z'),'m61':new Date('2026-06-26T19:00:00Z'),'m62':new Date('2026-06-26T19:00:00Z'),'m63':new Date('2026-06-26T22:00:00Z'),'m64':new Date('2026-06-26T22:00:00Z'),'m65':new Date('2026-06-27T22:00:00Z'),'m66':new Date('2026-06-27T22:00:00Z'),'m67':new Date('2026-06-27T22:00:00Z'),'m68':new Date('2026-06-27T22:00:00Z'),'m69':new Date('2026-06-27T22:00:00Z'),'m70':new Date('2026-06-27T22:00:00Z'),'m71':new Date('2026-06-27T22:00:00Z'),'m72':new Date('2026-06-27T22:00:00Z')};
 const KO_KICKOFFS    = {
   // Round of 32 — all times UTC (ET+4)
-  'k73':new Date('2026-06-28T18:55:00Z'), // 3pm ET Sun Jun 28 - S.Africa vs Canada (locks 5 min before)
+  'k73':new Date('2026-06-28T19:00:00Z'), // 3pm ET Sun Jun 28 - S.Africa vs Canada
   'k76':new Date('2026-06-29T17:00:00Z'), // 1pm ET Mon Jun 29 - Brazil vs Japan
   'k74':new Date('2026-06-29T20:30:00Z'), // 4:30pm ET Mon Jun 29 - Germany vs Paraguay
   'k75':new Date('2026-06-30T01:00:00Z'), // 9pm ET Mon Jun 29 - Netherlands vs Morocco
@@ -355,7 +356,8 @@ const KO_DEADLINE    = new Date('2026-06-28T20:00:00Z'); // first R32 kickoff - 
 function matchLocked(id){
   const ko = MATCH_KICKOFFS[id] || KO_KICKOFFS[id];
   if(!ko) return false;
-  return new Date() >= new Date(ko.getTime() - LOCK_MINS*60*1000);
+  const lockMins = MATCH_LOCK_OVERRIDE[id] !== undefined ? MATCH_LOCK_OVERRIDE[id] : LOCK_MINS;
+  return new Date() >= new Date(ko.getTime() - lockMins*60*1000);
 }
 function groupLocked(){ return new Date() >= GROUP_DEADLINE; }
 function koLocked(){    return new Date() >= KO_DEADLINE; }
