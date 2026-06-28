@@ -581,7 +581,7 @@ async function doSignIn(){
   try {
     const hash = await hashPin(name, pin);
     // Fetch all rows and match client-side
-    const allRows = await SB.get('wc2026_picks', `?select=id,name,picks,mpreds,mscores,kopreds,champion,updated_at`);
+    const allRows = await SB.get('wc2026_picks', `?select=id,name,picks,mpreds,mscores,kopreds,koscores,champion,updated_at`);
     if(!allRows){
       err.textContent = 'Could not reach the database. Check your internet connection.';
       btn.disabled=false; btn.textContent='Sign in'; return;
@@ -665,7 +665,7 @@ async function doRegister(){
     });
     console.log('Upsert result:', ok);
     if(ok?.ok){
-      const rows = await SB.get('wc2026_picks', `?id=eq.${id}`);
+      const rows = await SB.get('wc2026_picks', `?id=eq.${id}&select=id,name,picks,mpreds,mscores,kopreds,koscores,champion,updated_at`);
       console.log('Fetched new account:', rows);
       if(rows && rows.length > 0){
         await onLoginSuccess(rows[0]);
@@ -735,7 +735,7 @@ async function checkSession(){
     if(!stored) return false;
     const sess = JSON.parse(stored);
     if(!sess.id) return false;
-    const rows = await SB.get('wc2026_picks', `?id=eq.${sess.id}&select=id,name,picks,mpreds,mscores,kopreds,champion,updated_at`);
+    const rows = await SB.get('wc2026_picks', `?id=eq.${sess.id}&select=id,name,picks,mpreds,mscores,kopreds,koscores,champion,updated_at`);
     if(!rows || rows.length === 0){ localStorage.removeItem('wc26:session'); return false; }
     await onLoginSuccess(rows[0]);
     return true;
