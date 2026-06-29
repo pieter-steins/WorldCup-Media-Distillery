@@ -284,6 +284,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--ink);mi
   <button class="nb"     onclick="showTab('summary')">Summary</button>
   <button class="nb"     onclick="showTab('leaderboard')">Leaderboard</button>
   <button class="nb"     onclick="showTab('results')">Results</button>
+  <button class="nb"     onclick="showTab('submissions')">&#128203; Submissions</button>
   <button class="nb"     onclick="showTab('admin')" style="color:#ef6b6b">&#9881; Admin</button>
   <div class="user-badge" onclick="signOut()" title="Sign out"><span id="userBadgeName"></span>&#x2715;</div>
 </nav>
@@ -296,6 +297,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--ink);mi
   <section id="tab-summary"    class="scr"></section>
   <section id="tab-leaderboard"class="scr"></section>
   <section id="tab-results"    class="scr"></section>
+  <section id="tab-submissions" class="scr"></section>
   <section id="tab-admin"      class="scr"></section>
 </main>
 <div class="toast" id="toast"></div>
@@ -829,6 +831,65 @@ let adminParticipants = [];
 let confirmDeleteId = null;
 let viewParticipant = null;
 
+function buildSubmissionsTab(){
+  document.getElementById('tab-submissions').innerHTML = `
+    <div class="infob">Overview of all participants and their submission status. Refreshes automatically when you open this tab.</div>
+    <div id="submissionsContent"><div style="text-align:center;padding:2rem;color:var(--muted)"><span class="spin"></span> Loading…</div></div>`;
+}
+
+async function loadSubmissions(){
+  var container=document.getElementById('submissionsContent');
+  if(!container)return;
+  container.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted)"><span class="spin"></span> Loading...</div>';
+  var rows=await SB.get('wc2026_picks','?order=name.asc');
+  if(!rows){container.innerHTML='<div class="infob">Could not load submissions.</div>';return;}
+  var participants=rows.filter(function(r){return r.name;}).map(function(r){
+    var gc=0;
+    if(r.picks){Object.entries(r.picks).forEach(function(e){var g=e[0],gp=e[1];if(g!=='_meta'&&typeof gp==='object'&&gp){Object.values(gp).forEach(function(v){if(v>0)gc++;});}});}
+    var mc=r.mpreds?Object.values(r.mpreds).filter(function(v){return v!=='';}).length:0;
+    var kc=r.kopreds?Object.keys(r.kopreds).filter(function(k){return !k.includes('_hda')&&r.kopreds[k]!=='';}).length:0;
+    return{name:r.name,gc:gc,mc:mc,kc:kc,champion:r.champion||'',updatedAt:r.updated_at};
+  });
+  var total=participants.length;
+  var fullGroup=participants.filter(function(p){return p.gc===24;}).length;
+  var fullMatch=participants.filter(function(p){return p.mc===72;}).length;
+  var hasChamp=participants.filter(function(p){return p.champion;}).length;
+  var html='<div class="stats" style="margin-bottom:1rem">';
+  html+='<div class="sc"><div class="sl">Total</div><div class="sv">'+total+'</div></div>';
+  html+='<div class="sc"><div class="sl">Groups done</div><div class="sv">'+fullGroup+'<span style="font-size:1rem;color:var(--muted)">/'+total+'</span></div></div>';
+  html+='<div class="sc"><div class="sl">Matches done</div><div class="sv">'+fullMatch+'<span style="font-size:1rem;color:var(--muted)">/'+total+'</span></div></div>';
+  html+='<div class="sc"><div class="sl">Champion picked</div><div class="sv">'+hasChamp+'<span style="font-size:1rem;color:var(--muted)">/'+total+'</span></div></div>';
+  html+='</div>';
+  html+='<div class="card" style="padding:0;overflow:hidden"><table style="width:100%;border-collapse:collapse">';
+  html+='<thead><tr>';
+  ['Name','Groups','Matches','KO','Champion','Last updated'].forEach(function(h){
+    html+='<th style="background:var(--ink);color:#8fa3b8;font-size:.65rem;font-weight:500;text-transform:uppercase;letter-spacing:.06em;padding:9px 12px;text-align:left">'+h+'</th>';
+  });
+  html+='</tr></thead><tbody>';
+  participants.forEach(function(p,i){
+    var bg=i%2===0?'var(--white)':'var(--surface)';
+    var gcPct=Math.round(p.gc/24*100);
+    var mcPct=Math.round(p.mc/72*100);
+    var gcCol=p.gc===24?'var(--green-d)':p.gc>0?'var(--amber-d)':'var(--muted)';
+    var mcCol=p.mc===72?'var(--green-d)':p.mc>0?'var(--amber-d)':'var(--muted)';
+    var kcCol=p.kc>0?'var(--amber-d)':'var(--muted)';
+    var isMe=p.name===state.name;
+    var updated=p.updatedAt?new Date(p.updatedAt).toLocaleString('nl-NL',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'—';
+    var outline=isMe?';outline:2px solid var(--amber);outline-offset:-2px':'';
+    html+='<tr style="background:'+bg+outline+'">';
+    html+='<td style="padding:9px 12px;font-size:.82rem;font-weight:'+(isMe?500:400)+'">'+p.name+(isMe?' <span style="font-size:.63rem;color:#854F0B">you</span>':'')+'</td>';
+    html+='<td style="padding:9px 12px;text-align:center"><span style="font-size:.78rem;font-weight:500;color:'+gcCol+'">'+p.gc+'/24</span><div style="height:3px;background:var(--border);border-radius:2px;margin-top:3px;overflow:hidden"><div style="height:100%;width:'+gcPct+'%;background:'+(p.gc===24?'var(--green)':'var(--amber)')+';border-radius:2px"></div></div></td>';
+    html+='<td style="padding:9px 12px;text-align:center"><span style="font-size:.78rem;font-weight:500;color:'+mcCol+'">'+p.mc+'/72</span><div style="height:3px;background:var(--border);border-radius:2px;margin-top:3px;overflow:hidden"><div style="height:100%;width:'+mcPct+'%;background:'+(p.mc===72?'var(--green)':'var(--amber)')+';border-radius:2px"></div></div></td>';
+    html+='<td style="padding:9px 12px;text-align:center;font-size:.78rem;font-weight:500;color:'+kcCol+'">'+p.kc+'/16</td>';
+    html+='<td style="padding:9px 12px;font-size:.78rem;color:'+(p.champion?'var(--ink)':'var(--muted)')+';font-style:'+(p.champion?'normal':'italic')+'">'+(p.champion||'not picked')+'</td>';
+    html+='<td style="padding:9px 12px;font-size:.72rem;color:var(--muted)">'+updated+'</td>';
+    html+='</tr>';
+  });
+  html+='</tbody></table></div>';
+  html+='<button onclick="loadSubmissions()" style="margin-top:.75rem;background:none;border:1px solid var(--border);border-radius:8px;padding:7px 16px;font-family:DM Sans,sans-serif;font-size:.78rem;cursor:pointer;color:var(--muted)">&#8635; Refresh</button>';
+  container.innerHTML=html;
+}
+
 function buildAdminTab(){
   renderAdminTab();
 }
@@ -1133,6 +1194,7 @@ async function testConnection(){
 async function init(){
   // Build all tabs first (no Supabase calls yet)
   buildGroupsTab();
+  buildSubmissionsTab();
   buildAdminTab();
   buildMatchesTab();
   buildKnockoutTab();
@@ -1179,8 +1241,10 @@ async function loadResults(){
     if(results.champion)document.getElementById('champResult').value=results.champion;
   }
 }
-function debounceSave(){
-  if(isLocked()){showToast('Picks are locked — tournament has started.');return;}
+function debounceSave(skipGroupCheck){
+  // Only block group/match/champion saves after tournament start
+  // Knockout saves are allowed until each match's individual deadline
+  if(!skipGroupCheck && isLocked()){showToast('Picks are locked — tournament has started.');return;}
   // name is set at login and cannot be changed
   setSaving('saving');
   if(saveTimer)clearTimeout(saveTimer);
@@ -1210,6 +1274,7 @@ function showTab(name){
   event.target.classList.add('on');
   if(name==='leaderboard')loadLeaderboard();
   if(name==='summary')renderSummary();
+  if(name==='submissions')loadSubmissions();
 }
 
 // ── GROUPS TAB ────────────────────────────────────────────────────────
@@ -1454,7 +1519,7 @@ function renderKnockoutList(){
 function setKoPredHDA(id,val){
   if(matchLocked(id)){showToast('This match is locked — kickoff is less than 60 minutes away.');return;}
   state.kopreds[id+'_hda']=state.kopreds[id+'_hda']===val?'':val;
-  renderKnockoutList();updateProgress();debounceSave();
+  renderKnockoutList();updateProgress();debounceSave(true);
 }
 function setKoScore(id,side,val){
   if(matchLocked(id)){showToast('This match is locked — kickoff is less than 60 minutes away.');return;}
@@ -1462,12 +1527,12 @@ function setKoScore(id,side,val){
   state.koscores[id][side]=val===''?'':parseInt(val)||0;
   var h=state.koscores[id].h;var a=state.koscores[id].a;
   if(h!==''&&a!==''){var hi=parseInt(h),ai=parseInt(a);state.kopreds[id+'_hda']=hi>ai?'h':hi<ai?'a':'d';}
-  renderKnockoutList();updateProgress();debounceSave();
+  renderKnockoutList();updateProgress();debounceSave(true);
 }
 function setKoPred(id,val){
   if(matchLocked(id)){showToast('This match is locked — kickoff is less than 60 minutes away.');return;}
   state.kopreds[id]=state.kopreds[id]===val?'':val;
-  renderKnockoutList();updateProgress();debounceSave();
+  renderKnockoutList();updateProgress();debounceSave(true);
 }
 
 
