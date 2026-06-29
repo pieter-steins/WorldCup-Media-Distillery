@@ -306,59 +306,127 @@ body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--ink);mi
 const SUPABASE_URL = "https://lqnvxvobzthlaonqvzti.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxxbnZ4dm9ienRobGFvbnF2enRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNTUwMTcsImV4cCI6MjA5NDczMTAxN30.GXJOF2xrsOsX8eOLbJWaXWopu4ETu_CmHHXSVDvJZ5Y";
 
-// ── DEADLINES ─────────────────────────────────────────────────────────
-// Each match locks 60 minutes before its own kickoff
-const LOCK_MINS = 60; // default lock time in minutes before kickoff
-const MATCH_LOCK_OVERRIDE = {'k73': 5}; // per-match overrides in minutes
-const MATCH_KICKOFFS = {'m1':new Date('2026-06-11T23:00:00Z'),'m2':new Date('2026-06-11T23:00:00Z'),'m3':new Date('2026-06-12T19:00:00Z'),'m4':new Date('2026-06-12T23:00:00Z'),'m5':new Date('2026-06-13T19:00:00Z'),'m6':new Date('2026-06-13T19:00:00Z'),'m7':new Date('2026-06-13T22:00:00Z'),'m8':new Date('2026-06-13T22:00:00Z'),'m9':new Date('2026-06-14T19:00:00Z'),'m10':new Date('2026-06-14T19:00:00Z'),'m11':new Date('2026-06-14T22:00:00Z'),'m12':new Date('2026-06-14T22:00:00Z'),'m13':new Date('2026-06-15T19:00:00Z'),'m14':new Date('2026-06-15T19:00:00Z'),'m15':new Date('2026-06-15T22:00:00Z'),'m16':new Date('2026-06-15T22:00:00Z'),'m17':new Date('2026-06-16T19:00:00Z'),'m18':new Date('2026-06-16T19:00:00Z'),'m19':new Date('2026-06-16T22:00:00Z'),'m20':new Date('2026-06-16T22:00:00Z'),'m21':new Date('2026-06-17T19:00:00Z'),'m22':new Date('2026-06-17T19:00:00Z'),'m23':new Date('2026-06-17T22:00:00Z'),'m24':new Date('2026-06-17T22:00:00Z'),'m25':new Date('2026-06-18T19:00:00Z'),'m26':new Date('2026-06-18T19:00:00Z'),'m27':new Date('2026-06-18T22:00:00Z'),'m28':new Date('2026-06-18T22:00:00Z'),'m29':new Date('2026-06-19T19:00:00Z'),'m30':new Date('2026-06-19T19:00:00Z'),'m31':new Date('2026-06-19T22:00:00Z'),'m32':new Date('2026-06-19T22:00:00Z'),'m33':new Date('2026-06-20T19:00:00Z'),'m34':new Date('2026-06-20T19:00:00Z'),'m35':new Date('2026-06-20T22:00:00Z'),'m36':new Date('2026-06-20T22:00:00Z'),'m37':new Date('2026-06-21T19:00:00Z'),'m38':new Date('2026-06-21T19:00:00Z'),'m39':new Date('2026-06-21T22:00:00Z'),'m40':new Date('2026-06-21T22:00:00Z'),'m41':new Date('2026-06-22T19:00:00Z'),'m42':new Date('2026-06-22T19:00:00Z'),'m43':new Date('2026-06-22T22:00:00Z'),'m44':new Date('2026-06-22T22:00:00Z'),'m45':new Date('2026-06-23T19:00:00Z'),'m46':new Date('2026-06-23T19:00:00Z'),'m47':new Date('2026-06-23T22:00:00Z'),'m48':new Date('2026-06-23T22:00:00Z'),'m49':new Date('2026-06-24T22:00:00Z'),'m50':new Date('2026-06-24T22:00:00Z'),'m51':new Date('2026-06-24T22:00:00Z'),'m52':new Date('2026-06-24T22:00:00Z'),'m53':new Date('2026-06-24T22:00:00Z'),'m54':new Date('2026-06-24T22:00:00Z'),'m55':new Date('2026-06-25T19:00:00Z'),'m56':new Date('2026-06-25T19:00:00Z'),'m57':new Date('2026-06-25T22:00:00Z'),'m58':new Date('2026-06-25T22:00:00Z'),'m59':new Date('2026-06-25T22:00:00Z'),'m60':new Date('2026-06-25T22:00:00Z'),'m61':new Date('2026-06-26T19:00:00Z'),'m62':new Date('2026-06-26T19:00:00Z'),'m63':new Date('2026-06-26T22:00:00Z'),'m64':new Date('2026-06-26T22:00:00Z'),'m65':new Date('2026-06-27T22:00:00Z'),'m66':new Date('2026-06-27T22:00:00Z'),'m67':new Date('2026-06-27T22:00:00Z'),'m68':new Date('2026-06-27T22:00:00Z'),'m69':new Date('2026-06-27T22:00:00Z'),'m70':new Date('2026-06-27T22:00:00Z'),'m71':new Date('2026-06-27T22:00:00Z'),'m72':new Date('2026-06-27T22:00:00Z')};
+const LOCK_MINS = 60;
+const KO_LOCK_MINS = 30;
+const MATCH_LOCK_OVERRIDE = {'k73': 5};
+const MATCH_KICKOFFS = {
+  'm1':new Date('2026-06-11T23:00:00Z'),
+  'm2':new Date('2026-06-11T23:00:00Z'),
+  'm3':new Date('2026-06-12T19:00:00Z'),
+  'm4':new Date('2026-06-12T23:00:00Z'),
+  'm5':new Date('2026-06-13T19:00:00Z'),
+  'm6':new Date('2026-06-13T19:00:00Z'),
+  'm7':new Date('2026-06-13T22:00:00Z'),
+  'm8':new Date('2026-06-13T22:00:00Z'),
+  'm9':new Date('2026-06-14T19:00:00Z'),
+  'm10':new Date('2026-06-14T19:00:00Z'),
+  'm11':new Date('2026-06-14T22:00:00Z'),
+  'm12':new Date('2026-06-14T22:00:00Z'),
+  'm13':new Date('2026-06-15T19:00:00Z'),
+  'm14':new Date('2026-06-15T19:00:00Z'),
+  'm15':new Date('2026-06-15T22:00:00Z'),
+  'm16':new Date('2026-06-15T22:00:00Z'),
+  'm17':new Date('2026-06-16T19:00:00Z'),
+  'm18':new Date('2026-06-16T19:00:00Z'),
+  'm19':new Date('2026-06-16T22:00:00Z'),
+  'm20':new Date('2026-06-16T22:00:00Z'),
+  'm21':new Date('2026-06-17T19:00:00Z'),
+  'm22':new Date('2026-06-17T19:00:00Z'),
+  'm23':new Date('2026-06-17T22:00:00Z'),
+  'm24':new Date('2026-06-17T22:00:00Z'),
+  'm25':new Date('2026-06-18T19:00:00Z'),
+  'm26':new Date('2026-06-18T19:00:00Z'),
+  'm27':new Date('2026-06-18T22:00:00Z'),
+  'm28':new Date('2026-06-18T22:00:00Z'),
+  'm29':new Date('2026-06-19T19:00:00Z'),
+  'm30':new Date('2026-06-19T19:00:00Z'),
+  'm31':new Date('2026-06-19T22:00:00Z'),
+  'm32':new Date('2026-06-19T22:00:00Z'),
+  'm33':new Date('2026-06-20T19:00:00Z'),
+  'm34':new Date('2026-06-20T19:00:00Z'),
+  'm35':new Date('2026-06-20T22:00:00Z'),
+  'm36':new Date('2026-06-20T22:00:00Z'),
+  'm37':new Date('2026-06-21T19:00:00Z'),
+  'm38':new Date('2026-06-21T19:00:00Z'),
+  'm39':new Date('2026-06-21T22:00:00Z'),
+  'm40':new Date('2026-06-21T22:00:00Z'),
+  'm41':new Date('2026-06-22T19:00:00Z'),
+  'm42':new Date('2026-06-22T19:00:00Z'),
+  'm43':new Date('2026-06-22T22:00:00Z'),
+  'm44':new Date('2026-06-22T22:00:00Z'),
+  'm45':new Date('2026-06-23T19:00:00Z'),
+  'm46':new Date('2026-06-23T19:00:00Z'),
+  'm47':new Date('2026-06-23T22:00:00Z'),
+  'm48':new Date('2026-06-23T22:00:00Z'),
+  'm49':new Date('2026-06-24T22:00:00Z'),
+  'm50':new Date('2026-06-24T22:00:00Z'),
+  'm51':new Date('2026-06-24T22:00:00Z'),
+  'm52':new Date('2026-06-24T22:00:00Z'),
+  'm53':new Date('2026-06-24T22:00:00Z'),
+  'm54':new Date('2026-06-24T22:00:00Z'),
+  'm55':new Date('2026-06-25T19:00:00Z'),
+  'm56':new Date('2026-06-25T19:00:00Z'),
+  'm57':new Date('2026-06-25T22:00:00Z'),
+  'm58':new Date('2026-06-25T22:00:00Z'),
+  'm59':new Date('2026-06-25T22:00:00Z'),
+  'm60':new Date('2026-06-25T22:00:00Z'),
+  'm61':new Date('2026-06-26T19:00:00Z'),
+  'm62':new Date('2026-06-26T19:00:00Z'),
+  'm63':new Date('2026-06-26T22:00:00Z'),
+  'm64':new Date('2026-06-26T22:00:00Z'),
+  'm65':new Date('2026-06-27T22:00:00Z'),
+  'm66':new Date('2026-06-27T22:00:00Z'),
+  'm67':new Date('2026-06-27T22:00:00Z'),
+  'm68':new Date('2026-06-27T22:00:00Z'),
+  'm69':new Date('2026-06-27T22:00:00Z'),
+  'm70':new Date('2026-06-27T22:00:00Z'),
+  'm71':new Date('2026-06-27T22:00:00Z'),
+  'm72':new Date('2026-06-27T22:00:00Z')
+};
 const KO_KICKOFFS    = {
-  // Round of 32 — all times UTC (ET+4)
-  'k73':new Date('2026-06-28T19:00:00Z'), // 3pm ET Sun Jun 28 - S.Africa vs Canada
-  'k76':new Date('2026-06-29T17:00:00Z'), // 1pm ET Mon Jun 29 - Brazil vs Japan
-  'k74':new Date('2026-06-29T20:30:00Z'), // 4:30pm ET Mon Jun 29 - Germany vs Paraguay
-  'k75':new Date('2026-06-30T01:00:00Z'), // 9pm ET Mon Jun 29 - Netherlands vs Morocco
-  'k78':new Date('2026-06-30T17:00:00Z'), // 1pm ET Tue Jun 30 - Ivory Coast vs Norway
-  'k77':new Date('2026-06-30T21:00:00Z'), // 5pm ET Tue Jun 30 - France vs Sweden
-  'k79':new Date('2026-07-01T01:00:00Z'), // 9pm ET Tue Jun 30 - Mexico vs Ecuador
-  'k80':new Date('2026-07-01T16:00:00Z'), // 12pm ET Wed Jul 1 - England vs DR Congo
-  'k82':new Date('2026-07-01T20:00:00Z'), // 4pm ET Wed Jul 1 - Belgium vs Senegal
-  'k81':new Date('2026-07-02T00:00:00Z'), // 8pm ET Wed Jul 1 - USA vs Bosnia
-  'k84':new Date('2026-07-02T19:00:00Z'), // 3pm ET Thu Jul 2 - Spain vs Austria
-  'k83':new Date('2026-07-02T23:00:00Z'), // 7pm ET Thu Jul 2 - Portugal vs Croatia
-  'k85':new Date('2026-07-03T03:00:00Z'), // 11pm ET Thu Jul 2 - Switzerland vs Algeria
-  'k88':new Date('2026-07-03T18:00:00Z'), // 2pm ET Fri Jul 3 - Australia vs Egypt (CDT)
-  'k86':new Date('2026-07-03T22:00:00Z'), // 6pm ET Fri Jul 3 - Argentina vs Cape Verde
-  'k87':new Date('2026-07-04T00:30:00Z'), // 8:30pm ET Fri Jul 3 - Colombia vs Ghana
-  // Round of 16 — Jul 4-7
-  'k90':new Date('2026-07-04T17:00:00Z'), // 1pm ET Sat Jul 4
-  'k89':new Date('2026-07-04T21:00:00Z'), // 5pm ET Sat Jul 4
-  'k91':new Date('2026-07-05T20:00:00Z'), // 4pm ET Sun Jul 5
-  'k92':new Date('2026-07-06T00:00:00Z'), // 8pm ET Sun Jul 5
-  'k93':new Date('2026-07-06T19:00:00Z'), // 3pm ET Mon Jul 6
-  'k94':new Date('2026-07-07T00:00:00Z'), // 8pm ET Mon Jul 6
-  'k95':new Date('2026-07-07T16:00:00Z'), // 12pm ET Tue Jul 7
-  'k96':new Date('2026-07-07T20:00:00Z'), // 4pm ET Tue Jul 7
-  // Quarter-finals — Jul 9-11
-  'k97':new Date('2026-07-09T20:00:00Z'), // 4pm ET Thu Jul 9
-  'k98':new Date('2026-07-10T19:00:00Z'), // 3pm ET Fri Jul 10
-  'k99':new Date('2026-07-10T23:00:00Z'), // 7pm ET Fri Jul 10
-  'k100':new Date('2026-07-11T20:00:00Z'),// 4pm ET Sat Jul 11
-  // Semi-finals — Jul 14-15
-  'k101':new Date('2026-07-14T23:00:00Z'),// 7pm ET Tue Jul 14
-  'k102':new Date('2026-07-15T23:00:00Z'),// 7pm ET Wed Jul 15
-  // Third place + Final
-  'k103':new Date('2026-07-18T23:00:00Z'),// 7pm ET Fri Jul 18
-  'k104':new Date('2026-07-19T19:00:00Z') // 3pm ET Sun Jul 19 - Final
+  'k73':new Date('2026-06-28T19:00:00Z'),
+  'k76':new Date('2026-06-29T17:00:00Z'),
+  'k74':new Date('2026-06-29T20:30:00Z'),
+  'k75':new Date('2026-06-30T01:00:00Z'),
+  'k78':new Date('2026-06-30T17:00:00Z'),
+  'k77':new Date('2026-06-30T21:00:00Z'),
+  'k79':new Date('2026-07-01T01:00:00Z'),
+  'k80':new Date('2026-07-01T16:00:00Z'),
+  'k82':new Date('2026-07-01T20:00:00Z'),
+  'k81':new Date('2026-07-02T00:00:00Z'),
+  'k84':new Date('2026-07-02T19:00:00Z'),
+  'k83':new Date('2026-07-02T23:00:00Z'),
+  'k85':new Date('2026-07-03T03:00:00Z'),
+  'k88':new Date('2026-07-03T18:00:00Z'),
+  'k86':new Date('2026-07-03T22:00:00Z'),
+  'k87':new Date('2026-07-04T00:30:00Z'),
+  'k90':new Date('2026-07-04T17:00:00Z'),
+  'k89':new Date('2026-07-04T21:00:00Z'),
+  'k91':new Date('2026-07-05T20:00:00Z'),
+  'k92':new Date('2026-07-06T00:00:00Z'),
+  'k93':new Date('2026-07-06T19:00:00Z'),
+  'k94':new Date('2026-07-07T00:00:00Z'),
+  'k95':new Date('2026-07-07T16:00:00Z'),
+  'k96':new Date('2026-07-07T20:00:00Z'),
+  'k97':new Date('2026-07-09T20:00:00Z'),
+  'k98':new Date('2026-07-10T19:00:00Z'),
+  'k99':new Date('2026-07-10T23:00:00Z'),
+  'k100':new Date('2026-07-11T20:00:00Z'),
+  'k101':new Date('2026-07-14T23:00:00Z'),
+  'k102':new Date('2026-07-15T23:00:00Z'),
+  'k103':new Date('2026-07-18T23:00:00Z'),
+  'k104':new Date('2026-07-19T19:00:00Z')
 };
 
-// First group match kickoff (for champion/group picks global lock)
-const GROUP_DEADLINE = new Date('2026-06-11T23:00:00Z'); // first kickoff - 60 min
-const KO_DEADLINE    = new Date('2026-06-28T20:00:00Z'); // first R32 kickoff - 60 min
+const GROUP_DEADLINE = new Date('2026-06-11T23:00:00Z');
+const KO_DEADLINE    = new Date('2026-06-28T20:00:00Z');
 
 function matchLocked(id){
+  const isKO = KO_KICKOFFS[id] !== undefined;
   const ko = MATCH_KICKOFFS[id] || KO_KICKOFFS[id];
   if(!ko) return false;
-  const lockMins = MATCH_LOCK_OVERRIDE[id] !== undefined ? MATCH_LOCK_OVERRIDE[id] : LOCK_MINS;
+  const defaultMins = isKO ? KO_LOCK_MINS : LOCK_MINS;
+  const lockMins = MATCH_LOCK_OVERRIDE[id] !== undefined ? MATCH_LOCK_OVERRIDE[id] : defaultMins;
   return new Date() >= new Date(ko.getTime() - lockMins*60*1000);
 }
 function groupLocked(){ return new Date() >= GROUP_DEADLINE; }
@@ -398,9 +466,9 @@ function phaseBanner(type){
 
   if(type === 'ko'){
     if(kLocked) return `
-      <div style="background:#FCEBEB;border:1px solid #E24B4A;border-radius:10px;padding:.75rem 1rem;font-size:.8rem;color:#7A1515;margin-bottom:.9rem;display:flex;align-items:center;gap:10px">
-        <span style="font-size:1.3rem">&#128274;</span>
-        <div><strong>Knockout picks locked</strong> — The Round of 32 started on June 28. Knockout predictions can no longer be changed.</div>
+      <div style="background:var(--blue-l);border:1px solid var(--blue);border-radius:10px;padding:.75rem 1rem;font-size:.8rem;color:var(--blue-d);margin-bottom:.9rem;display:flex;align-items:center;gap:10px">
+        <span style="font-size:1.2rem">&#9203;</span>
+        <div><strong>Knockout picks open</strong> — Each match locks <strong>30 minutes before kickoff</strong>. Pick your winners, scores and results up until then!</div>
       </div>`;
     if(gLocked) return `
       <div style="background:var(--blue-l);border:1px solid var(--blue);border-radius:10px;padding:.75rem 1rem;font-size:.8rem;color:var(--blue-d);margin-bottom:.9rem;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
@@ -1058,47 +1126,61 @@ async function deleteParticipant(){
 }
 
 function viewParticipantPicks(id){
-  const p = adminParticipants.find(x=>x.id===id);
-  if(!p) return;
-  const ct = ALL_TEAMS.find(([n])=>n===p.champion);
-  const groupRows = Object.entries(GROUPS).flatMap(([g,teams])=>
-    teams.filter(([n])=>(p.picks?.[g]?.[n]||0)>0).map(([n,f])=>{
-      const v=p.picks[g][n];
-      return `<tr><td style="color:var(--muted);font-size:.68rem;width:50px">Grp ${g}</td><td style="font-size:.78rem">${f} ${n}</td><td><span class="badge ${v===1?'bw':'br'}">${v===1?'1st':'2nd'}</span></td></tr>`;
-    })
-  ).join('');
-  const matchRows = MATCHES.filter(m=>(p.mpreds?.[m.id]||'')).map(m=>{
-    const pred=p.mpreds[m.id];
-    return `<tr><td style="color:var(--muted);font-size:.68rem;width:50px">Grp ${m.g}</td><td style="font-size:.75rem">${m.h} vs ${m.a}</td><td><span class="badge ${pred==='h'?'bh':pred==='d'?'bd':'ba'}">${pred==='h'?m.h+' win':pred==='d'?'Draw':m.a+' win'}</span></td></tr>`;
-  }).join('');
-  const koRows = KO_MATCHES.filter(m=>(p.kopreds?.[m.id]||'')).map(m=>
-    `<tr><td style="color:var(--muted);font-size:.68rem;width:80px">${KO_ROUNDS.find(r=>r.id===m.round)?.label}</td><td style="font-size:.75rem">${m.label}</td><td><span class="badge bk">${p.kopreds[m.id]}</span></td></tr>`
-  ).join('');
-
-  const modal = document.getElementById('picksModal');
-  modal.style.display='flex';
+  var p=adminParticipants.find(function(x){return x.id===id;});
+  if(!p)return;
+  var ct=ALL_TEAMS.find(function(t){return t[0]===p.champion;});
+  var groupRows='';
+  Object.entries(GROUPS).forEach(function(e){
+    var g=e[0],teams=e[1];
+    teams.forEach(function(t){
+      var n=t[0],f=t[1];
+      var v=(p.picks&&p.picks[g])?p.picks[g][n]||0:0;
+      if(v>0){
+        groupRows+='<tr><td style="color:var(--muted);font-size:.68rem;width:50px">Grp '+g+'</td><td style="font-size:.78rem">'+f+' '+n+'</td><td><span class="badge '+(v===1?'bw':'br')+'">'+(v===1?'1st':'2nd')+'</span></td></tr>';
+      }
+    });
+  });
+  var matchRows='';
+  MATCHES.forEach(function(m){
+    var pred=(p.mpreds&&p.mpreds[m.id])?p.mpreds[m.id]:'';
+    if(pred){
+      var label=pred==='h'?m.h+' win':pred==='d'?'Draw':m.a+' win';
+      matchRows+='<tr><td style="color:var(--muted);font-size:.68rem;width:50px">Grp '+m.g+'</td><td style="font-size:.75rem">'+m.h+' vs '+m.a+'</td><td><span class="badge '+(pred==='h'?'bh':pred==='d'?'bd':'ba')+'">'+label+'</span></td></tr>';
+    }
+  });
+  var koRows='';
+  KO_MATCHES.forEach(function(m){
+    var pred=(p.kopreds&&p.kopreds[m.id])?p.kopreds[m.id]:'';
+    if(pred){
+      var roundLabel=KO_ROUNDS.find(function(r){return r.id===m.round;})?KO_ROUNDS.find(function(r){return r.id===m.round;}).label:'';
+      koRows+='<tr><td style="color:var(--muted);font-size:.68rem;width:80px">'+roundLabel+'</td><td style="font-size:.75rem">'+(m.h&&m.a?(m.h+' vs '+m.a):m.label)+'</td><td><span class="badge bk">'+pred+'</span></td></tr>';
+    }
+  });
+  var modal=document.getElementById('picksModal');
   modal.style.cssText='display:flex;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;align-items:center;justify-content:center;padding:1rem';
-  modal.innerHTML=`
-    <div style="background:var(--white);border-radius:14px;max-width:580px;width:100%;max-height:88vh;overflow-y:auto;padding:1.5rem">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.04em">${p.name}</div>
-        <button onclick="document.getElementById('picksModal').style.display='none'" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--muted)">&#10005;</button>
-      </div>
-      ${p.champion?`<div class="champ-box" style="margin-bottom:1rem"><span class="cf">${ct?.[1]||''}</span><div><div class="cn">${p.champion}</div><div class="cs">Champion pick</div></div></div>`:''}
-      <div class="sec-title" style="margin-bottom:6px">Group picks (${p.gc}/24)</div>
-      <div style="background:var(--white);border:1px solid var(--border);border-radius:10px;padding:0 .875rem;margin-bottom:.9rem">
-        <table class="ptable">${groupRows||'<tr><td style="padding:.7rem;color:var(--muted);font-style:italic">No picks</td></tr>'}</table>
-      </div>
-      <div class="sec-title" style="margin-bottom:6px">Match predictions (${p.mc}/72)</div>
-      <div style="background:var(--white);border:1px solid var(--border);border-radius:10px;padding:0 .875rem;margin-bottom:.9rem">
-        <table class="ptable">${matchRows||'<tr><td style="padding:.7rem;color:var(--muted);font-style:italic">No picks</td></tr>'}</table>
-      </div>
-      <div class="sec-title" style="margin-bottom:6px">Knockout predictions (${p.kc}/32)</div>
-      <div style="background:var(--white);border:1px solid var(--border);border-radius:10px;padding:0 .875rem;margin-bottom:.9rem">
-        <table class="ptable">${koRows||'<tr><td style="padding:.7rem;color:var(--muted);font-style:italic">No picks</td></tr>'}</table>
-      </div>
-      <div style="font-size:.72rem;color:var(--muted);text-align:right">Score: ${p.score!==null?p.score+' pts':'not yet calculated'} · Last updated: ${p.updatedAt?new Date(p.updatedAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</div>
-    </div>`;
+  var html='<div style="background:var(--white);border-radius:14px;max-width:580px;width:100%;max-height:88vh;overflow-y:auto;padding:1.5rem">';
+  html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">';
+  html+='<div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;letter-spacing:.04em">'+p.name+'</div>';
+  html+='<button onclick="document.getElementById(\'picksModal\').style.display=\'none\'" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--muted)">&#10005;</button>';
+  html+='</div>';
+  if(p.champion){
+    html+='<div class="champ-box" style="margin-bottom:1rem">';
+    html+='<span class="cf">'+(ct?ct[1]:'')+'</span>';
+    html+='<div><div class="cn">'+p.champion+'</div><div class="cs">Champion pick</div></div></div>';
+  }
+  html+='<div class="sec-title" style="margin-bottom:6px">Group picks ('+p.gc+'/24)</div>';
+  html+='<div style="background:var(--white);border:1px solid var(--border);border-radius:10px;padding:0 .875rem;margin-bottom:.9rem">';
+  html+='<table class="ptable">'+(groupRows||'<tr><td style="padding:.7rem;color:var(--muted);font-style:italic">No picks</td></tr>')+'</table></div>';
+  html+='<div class="sec-title" style="margin-bottom:6px">Match predictions ('+p.mc+'/72)</div>';
+  html+='<div style="background:var(--white);border:1px solid var(--border);border-radius:10px;padding:0 .875rem;margin-bottom:.9rem">';
+  html+='<table class="ptable">'+(matchRows||'<tr><td style="padding:.7rem;color:var(--muted);font-style:italic">No picks</td></tr>')+'</table></div>';
+  html+='<div class="sec-title" style="margin-bottom:6px">Knockout predictions ('+p.kc+'/32)</div>';
+  html+='<div style="background:var(--white);border:1px solid var(--border);border-radius:10px;padding:0 .875rem;margin-bottom:.9rem">';
+  html+='<table class="ptable">'+(koRows||'<tr><td style="padding:.7rem;color:var(--muted);font-style:italic">No picks</td></tr>')+'</table></div>';
+  var updated=p.updatedAt?new Date(p.updatedAt).toLocaleString('nl-NL'):'—';
+  html+='<div style="font-size:.72rem;color:var(--muted);text-align:right">Score: '+(p.score!==null?p.score+' pts':'not yet calculated')+' · Last updated: '+updated+'</div>';
+  html+='</div>';
+  modal.innerHTML=html;
 }
 
 function exportCSV(){
@@ -1425,13 +1507,13 @@ function renderMatchesList(){
     </div>`).join('')||'<p style="color:var(--muted);font-size:.85rem;padding:.5rem 0">All picked!</p>';
 }
 function setPred(id,val){
-  if(matchLocked(id)){showToast('This match is locked — kickoff is less than 60 minutes away.');return;}
+  if(matchLocked(id)){showToast('This match is locked — kickoff is less than 30 minutes away.');return;}
   state.mpreds[id]=state.mpreds[id]===val?'':val;
   renderMatchesList();updateProgress();debounceSave();
   const u=document.getElementById('mf-unpicked');if(u)u.textContent='Unpicked ('+(72-Object.values(state.mpreds).filter(v=>v!=='').length)+')';
 }
 function setScore(id,side,val){
-  if(matchLocked(id)){showToast('This match is locked — kickoff is less than 60 minutes away.');return;}
+  if(matchLocked(id)){showToast('This match is locked — kickoff is less than 30 minutes away.');return;}
   if(!state.mscores[id])state.mscores[id]={h:'',a:''};
   state.mscores[id][side]=val===''?'':parseInt(val)||0;
   // auto-set H/D/A result based on score
@@ -1517,12 +1599,12 @@ function renderKnockoutList(){
   container.innerHTML=html;
 }
 function setKoPredHDA(id,val){
-  if(matchLocked(id)){showToast('This match is locked — kickoff is less than 60 minutes away.');return;}
+  if(matchLocked(id)){showToast('This match is locked — kickoff is less than 30 minutes away.');return;}
   state.kopreds[id+'_hda']=state.kopreds[id+'_hda']===val?'':val;
   renderKnockoutList();updateProgress();debounceSave(true);
 }
 function setKoScore(id,side,val){
-  if(matchLocked(id)){showToast('This match is locked — kickoff is less than 60 minutes away.');return;}
+  if(matchLocked(id)){showToast('This match is locked — kickoff is less than 30 minutes away.');return;}
   if(!state.koscores[id])state.koscores[id]={h:'',a:''};
   state.koscores[id][side]=val===''?'':parseInt(val)||0;
   var h=state.koscores[id].h;var a=state.koscores[id].a;
@@ -1530,7 +1612,7 @@ function setKoScore(id,side,val){
   renderKnockoutList();updateProgress();debounceSave(true);
 }
 function setKoPred(id,val){
-  if(matchLocked(id)){showToast('This match is locked — kickoff is less than 60 minutes away.');return;}
+  if(matchLocked(id)){showToast('This match is locked — kickoff is less than 30 minutes away.');return;}
   state.kopreds[id]=state.kopreds[id]===val?'':val;
   renderKnockoutList();updateProgress();debounceSave(true);
 }
@@ -1785,28 +1867,89 @@ function buildMatchResultsList(){
     }).join('')}`).join('');
 }
 function buildKoResultsList(){
-  const container=document.getElementById('koResultsList');if(!container)return;
-  container.innerHTML=KO_ROUNDS.map(round=>{
-    const matches=KO_MATCHES.filter(m=>m.round===round.id);
-    return `<div style="font-size:.73rem;font-weight:500;color:var(--muted);padding:.3rem 0 .25rem;border-bottom:1px solid var(--border);margin-bottom:.3rem;margin-top:.6rem">${round.label} · ${round.dates}</div>`+
-    matches.map(m=>`
-      <div class="ko-res-card">
-        <div class="ko-res-label">${m.label} <em>· ${m.venue}</em></div>
-        <input placeholder="Winner name" id="ko-res-${m.id}" style="border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'DM Sans',sans-serif;font-size:.78rem;width:160px" onchange="saveKoResult('${m.id}',this.value)">
-        <input placeholder="t1" id="ko-t1-${m.id}" style="border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'DM Sans',sans-serif;font-size:.78rem;width:120px" title="Team 1 name (shown to participants)" onchange="saveKoTeams('${m.id}')">
-        <input placeholder="t2" id="ko-t2-${m.id}" style="border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'DM Sans',sans-serif;font-size:.78rem;width:120px" title="Team 2 name (shown to participants)" onchange="saveKoTeams('${m.id}')">
-      </div>`).join('');
-  }).join('');
+  var container=document.getElementById('koResultsList');if(!container)return;
+  var html='';
+  KO_ROUNDS.forEach(function(round){
+    var matches=KO_MATCHES.filter(function(m){return m.round===round.id;});
+    html+='<div style="font-size:.73rem;font-weight:500;color:var(--muted);padding:.3rem 0 .25rem;border-bottom:2px solid var(--ink);margin-bottom:.5rem;margin-top:.8rem">'+round.label+' <span style="font-weight:400">&#183; '+round.dates+'</span></div>';
+    matches.forEach(function(m){
+      var t1=m.h||'';var t2=m.a||'';
+      var matchLabel=t1&&t2?(t1+' vs '+t2):m.label||'TBD';
+      var matchNum=m.id.replace('k','#');
+      var koRes=results.ko&&results.ko[m.id]?results.ko[m.id]:{};
+      var hgVal=koRes.hg!==undefined&&koRes.hg!==''?koRes.hg:'';
+      var agVal=koRes.ag!==undefined&&koRes.ag!==''?koRes.ag:'';
+      var winnerVal=koRes.winner||'';
+      html+='<div class="ko-res-card" style="margin-bottom:.5rem;border-radius:10px;background:var(--white);border:1px solid var(--border);padding:.6rem .9rem;flex-wrap:wrap;gap:.5rem;display:flex;align-items:flex-start">';
+      html+='<div style="width:100%;display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem">';
+      html+='<span style="font-weight:500;font-size:.82rem;color:var(--ink)">'+matchNum+' &#8212; '+matchLabel+'</span>';
+      html+='<span style="font-size:.68rem;color:var(--muted)">'+m.date+(m.time?' &#183; '+m.time:'')+' &#183; '+m.venue+'</span>';
+      html+='</div>';
+      html+='<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">';
+      if(t1&&t2){
+        html+='<span style="font-size:.78rem;color:var(--ink);min-width:100px;text-align:right">'+t1+'</span>';
+        html+='<input type="number" min="0" max="20" placeholder="0" class="si kores-input" data-mid="'+m.id+'" data-field="hg" value="'+hgVal+'">';
+        html+='<span style="font-size:.78rem;color:var(--muted)">:</span>';
+        html+='<input type="number" min="0" max="20" placeholder="0" class="si kores-input" data-mid="'+m.id+'" data-field="ag" value="'+agVal+'">';
+        html+='<span style="font-size:.78rem;color:var(--ink);min-width:100px">'+t2+'</span>';
+        html+='</div>';
+        html+='<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-top:.3rem">';
+        html+='<span style="font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Winner</span>';
+        html+='<select class="kores-winner" data-mid="'+m.id+'" style="border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:DM Sans,sans-serif;font-size:.78rem;background:var(--white)">';
+        html+='<option value="">&#8212; select winner &#8212;</option>';
+        html+='<option value="'+t1+'"'+(winnerVal===t1?' selected':'')+'>'+t1+'</option>';
+        html+='<option value="'+t2+'"'+(winnerVal===t2?' selected':'')+'>'+t2+'</option>';
+        html+='</select>';
+        html+='</div>';
+      } else {
+        html+='<input placeholder="Team 1" class="ko-t1-input" data-mid="'+m.id+'" style="border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:.78rem;width:130px" value="'+(koRes.t1||'')+'">';
+        html+='<input type="number" min="0" max="20" placeholder="0" class="si kores-input" data-mid="'+m.id+'" data-field="hg" value="'+hgVal+'">';
+        html+='<span style="font-size:.78rem;color:var(--muted)">:</span>';
+        html+='<input type="number" min="0" max="20" placeholder="0" class="si kores-input" data-mid="'+m.id+'" data-field="ag" value="'+agVal+'">';
+        html+='<input placeholder="Team 2" class="ko-t2-input" data-mid="'+m.id+'" style="border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:.78rem;width:130px" value="'+(koRes.t2||'')+'">';
+        html+='</div>';
+        html+='<div style="display:flex;align-items:center;gap:.4rem;margin-top:.3rem">';
+        html+='<span style="font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Winner</span>';
+        html+='<input placeholder="Winner name" class="kores-winner-text" data-mid="'+m.id+'" style="border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:.78rem;width:160px" value="'+winnerVal+'">';
+        html+='</div>';
+      }
+      html+='</div>';
+    });
+  });
+  container.innerHTML=html;
+  // Attach event listeners using event delegation
+  container.addEventListener('change', function(e){
+    var el=e.target;
+    if(el.classList.contains('kores-input')){saveKoMatchScore(el.dataset.mid,el.dataset.field,el.value);}
+    else if(el.classList.contains('kores-winner')){saveKoResult(el.dataset.mid,el.value);}
+    else if(el.classList.contains('kores-winner-text')){saveKoResult(el.dataset.mid,el.value);}
+    else if(el.classList.contains('ko-t1-input')||el.classList.contains('ko-t2-input')){
+      var mid=el.dataset.mid;
+      var t1=container.querySelector('.ko-t1-input[data-mid="'+mid+'"]');
+      var t2=container.querySelector('.ko-t2-input[data-mid="'+mid+'"]');
+      if(t1&&t2)saveKoTeams2(mid,t1.value,t2.value);
+    }
+  });
 }
-function refreshGroupResultsUI(){Object.keys(GROUPS).forEach(g=>{['winner','runner'].forEach(field=>{const el=document.getElementById(`res-${g}-${field}`);if(el&&results.groups?.[g]?.[field])el.value=results.groups[g][field];});});}
-function refreshMatchResultsUI(){MATCHES.forEach(m=>{const mr=results.matches?.[m.id];const hEl=document.getElementById(`mres-${m.id}-hg`),aEl=document.getElementById(`mres-${m.id}-ag`);if(hEl&&mr?.hg!==undefined&&mr.hg!=='')hEl.value=mr.hg;if(aEl&&mr?.ag!==undefined&&mr.ag!=='')aEl.value=mr.ag;});}
-function refreshKoResultsUI(){KO_MATCHES.forEach(m=>{const r=results.ko?.[m.id];const el=document.getElementById(`ko-res-${m.id}`),t1=document.getElementById(`ko-t1-${m.id}`),t2=document.getElementById(`ko-t2-${m.id}`);if(el&&r?.winner)el.value=r.winner;if(t1&&r?.t1)t1.value=r.t1;if(t2&&r?.t2)t2.value=r.t2;});}
+async function saveKoTeams2(id,t1,t2){
+  if(!results.ko)results.ko={};
+  if(!results.ko[id])results.ko[id]={};
+  results.ko[id].t1=t1;results.ko[id].t2=t2;
+  setResSaving('saving');await saveResults();renderKnockoutList();
+}
+
 async function saveGroupResult(g,field,val){
   if(!results.groups)results.groups={};
   if(!results.groups[g])results.groups[g]={};
   results.groups[g][field]=val;setResSaving('saving');await saveResults();
 }
 async function saveMatchResult(id,field,val){if(!results.matches)results.matches={};if(!results.matches[id])results.matches[id]={};results.matches[id][field]=val===''?'':parseInt(val)||0;setResSaving('saving');await saveResults();}
+async function saveKoMatchScore(id,field,val){
+  if(!results.ko)results.ko={};
+  if(!results.ko[id])results.ko[id]={};
+  results.ko[id][field]=val===''?'':parseInt(val)||0;
+  setResSaving('saving');await saveResults();
+}
 async function saveKoResult(id,val){
   if(!results.ko)results.ko={};
   if(!results.ko[id])results.ko[id]={};
